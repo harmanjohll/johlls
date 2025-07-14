@@ -4,20 +4,25 @@
   <body>
     <h1>Supabase Test</h1>
     <pre id="output">Loading…</pre>
+
+    <!-- 1) Load the UMD bundle -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
     <script>
-      // 1) Supabase creds
+      // 2) Supabase creds
       const SUPABASE_URL = 'https://qvowmphqmflfanjospqm.supabase.co';
       const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF2b3dtcGhxbWZsZmFuam9zcHFtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI0NTY3NTksImV4cCI6MjA2ODAzMjc1OX0.-AdJqEXD8N5C4iNQH3W3s6e1swVompOMQh0rTj3gXQk';
-      const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-      // 2) Fetch profiles
+      // 3) Do NOT reuse the name “supabase” here—pick something new
+      const supaClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
       async function testProfiles() {
         const outputEl = document.getElementById('output');
         try {
-          const { data, error } = await supabase
+          // 4) Use supaClient, not supabase
+          const { data, error } = await supaClient
             .from('profiles')
             .select('*');
+
           console.log('Supabase response:', { data, error });
           if (error) throw error;
           outputEl.textContent = JSON.stringify(data, null, 2);
@@ -27,7 +32,6 @@
         }
       }
 
-      // 3) Run on load
       window.addEventListener('DOMContentLoaded', testProfiles);
     </script>
   </body>
