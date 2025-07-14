@@ -81,7 +81,7 @@
   <script>
     // 1) Supabase client
     const SUPABASE_URL = 'https://qvowmphqmflfanjospqm.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF2b3dtcGhxbWZsZmFuam9zcHFtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI0NTY3NTksImV4cCI6MjA2ODAzMjc1OX0.-AdJqEXD8N5C4iNQH3W3s6e1swVompOMQh0rTj3gXQk';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF2b3dtcGhxbWZsZmFuam9zcHFtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI0NTY3NTksImV4cCI6MjA2ODAzMjc1OX0.-AdJqEXD8N5C4iNQH3W3s6e1swVompOMQh0rT3gXQk';
     const supa = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     // 2) Application state
@@ -126,10 +126,124 @@
       });
     }
 
-    // 4) Original front-end logic (from your initial code)
+    // 4) Original front-end logic
     function mainApp() {
-      // copy-paste your original main() function body here:
-      // loadOrCreateUser, updateUI, setupWordOfTheDay, showDashboard, etc.
+      // --- In-App Knowledge Base (from your documents) ---
+      const knowledgeBase = {
+          imbuhan: {
+              beginner: "Awalan 'meN-' menjadi 'meng-' apabila bertemu kata dasar bermula dengan huruf g, h, dan vokal (a, e, i, o, u). Contoh: meng- + gali = menggali. Awalan 'peN-' menjadi 'pem-' jika bertemu huruf b. Contoh: pem- + baca = pembaca. Awalan 'pe-' digunakan untuk orang yang melakukan pekerjaan, contoh: pe- + sawah = pesawah.",
+              intermediate: "Imbuhan apitan 'ke-...-an' membentuk kata nama abstrak yang merujuk kepada hal atau keadaan. Contoh: baik -> kebaikan. Imbuhan apitan 'ber-...-an' boleh membawa maksud perbuatan yang berbalasan atau ramai pelaku. Contoh: salam -> bersalam-salaman. Imbuhan sisipan seperti '-el-' dalam 'geletar' menunjukkan perbuatan yang berulang-ulang atau intens.",
+              advanced: "Akhiran '-kan' dan '-i' kedua-duanya membentuk kata kerja transitif. Perbezaannya, '-kan' sering membawa maksud benefaktif (melakukan untuk orang lain) atau kausatif (menyebabkan jadi), manakala '-i' sering membawa maksud lokatif (merujuk tempat) atau menyebabkan sesuatu terjadi pada objek secara langsung. Contoh: 'Saya hadiahkan buku ini kepadanya' vs 'Saya menghadiahi dia sebuah buku'. 'Memper-' digunakan dengan kata adjektif (memperbesar), manakala 'memper-...-kan' digunakan dengan kata nama (mempersembahkan)."
+          },
+          peribahasa: {
+              beginner: "Peribahasa 'bagai aur dengan tebing' bermaksud hubungan yang sangat rapat dan saling membantu. 'Anak emas' bermaksud orang yang sangat disayangi. 'Ambil berat' bermaksud memberikan perhatian. 'Buah tangan' ialah hadiah.",
+              intermediate: "'Berat sama dipikul, ringan sama dijinjing' bermaksud bekerjasama dalam melakukan sesuatu kerja, baik susah mahupun senang. 'Seperti katak di bawah tempurung' bermaksud orang yang cetek pengetahuannya dan tidak tahu perkembangan dunia luar. 'Cakar ayam' bermaksud tulisan yang buruk.",
+              advanced: "'Mencurah air ke daun keladi' bermaksud memberi nasihat yang sia-sia atau tidak dihargai. 'Hati gajah sama dilapah, hati kuman sama dicecah' bermaksud pengagihan yang adil dan saksama, susah senang ditanggung bersama. 'Campur tangan' bermaksud melibatkan diri dalam hal orang lain."
+          }
+      };
+      // --- DOM Elements ---
+      const allScreens = ['dashboard-screen', 'level-selection-screen', 'quiz-screen'];
+      // --- User Data ---
+      // we reuse userData from outer scope
+      // --- Words of the Day ---
+      const wordsOfTheDay = [
+          { word: 'Cekal', meaning: 'Resilient / determined', sentence: "Kita mesti ______ menghadapi cabaran hidup.", options: ['cekik','cekal','cekap'] },
+          { word: 'Muafakat', meaning: 'Consensus / agreement', sentence: "Kejayaan majlis itu adalah hasil ______ semua ahli jawatankuasa.", options: ['muafakat','mufakat','muflis'] },
+      ];
+      const moduleData = { imbuhan:{ name:'Imbuhan',levels:['beginner','intermediate','advanced'] }, peribahasa:{ name:'Peribahasa',levels:['beginner','intermediate','advanced'] } };
+      // --- Main App Logic ---
+      function main() {
+          updateUI(); showDashboard();
+      }
+      // --- User & Auth Functions (overwriting localStorage parts) ---
+      function updateUI() {
+          document.getElementById('user-points').textContent = userData.points;
+          document.getElementById('user-tokens').textContent = userData.tokens + ' 🪙';
+          document.getElementById('user-rank').textContent   = userData.rank;
+          const badgesDisplay = document.getElementById('badges-display');
+          badgesDisplay.innerHTML = '';
+          if (userData.badges.length) userData.badges.forEach(b=>badgesDisplay.innerHTML+=`<span title="${b.name}" class="text-2xl">${b.icon}</span>`);
+          else badgesDisplay.innerHTML='<span class="text-gray-400 text-sm">Tiada lagi</span>';
+          setupWordOfTheDay();
+      }
+      function setupWordOfTheDay() {
+          const today = new Date().toISOString().split('T')[0];
+          const idx   = new Date(today).getDate() % wordsOfTheDay.length;
+          const wd    = wordsOfTheDay[idx];
+          const card  = document.getElementById('daily-word-card');
+          const h3    = card.querySelector('h3');
+          const p     = card.querySelector('p');
+          if (userData.lastWordDate===today) {
+              card.classList.add('challenge-completed'); h3.textContent='Syabas!'; p.textContent='Anda telah melengkapkan kata hari ini. Kembali esok!'; card.onclick=null;
+          } else {
+              card.classList.remove('challenge-completed'); h3.textContent=`Kata Hari Ini: ${wd.word}`; p.textContent=`Maksud: ${wd.meaning}. Gunakannya dalam ayat!`;
+              card.onclick=()=>{ if(userData.lastWordDate!==today) showWordOfTheDayQuiz(wd); };
+          }
+      }
+      function showWordOfTheDayQuiz(wd) {
+          const qS = document.getElementById('quiz-screen');
+          qS.innerHTML=`<button id="back-btn" class="mb-4 bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-full">&larr; Kembali</button><h2 class="text-3xl font-baloo mb-2">Kata Hari Ini: ${wd.word}</h2><p class="text-lg mb-4">${wd.sentence}</p><div id="options-container" class="space-y-2">${[...wd.options,wd.word].sort(()=>Math.random()-.5).map(o=>`<button class="w-full text-left bg-gray-100 p-4 rounded-lg hover:bg-blue-100 option-btn" data-answer="${o}">${o}</button>`).join('')}</div><div id="feedback-container" class="mt-4"></div>`;
+          showView('quiz-screen'); document.querySelectorAll('.option-btn').forEach(b=>b.onclick=e=>handleWordOfTheDayAnswer(e.target.dataset.answer,wd.word)); document.getElementById('back-btn').onclick=showDashboard;
+      }
+      function handleWordOfTheDayAnswer(sel,cor) {
+          document.querySelectorAll('.option-btn').forEach(b=>b.disabled=true);
+          const fb = document.getElementById('feedback-container');
+          if(sel===cor) {
+              userData.points+=15; userData.lastWordDate=new Date().toISOString().split('T')[0]; fb.innerHTML=`<div class="p-4 bg-green-100 text-green-800 rounded-lg"><b class="font-baloo">Betul!</b> Anda dapat 15 mata!</div>`;
+          } else fb.innerHTML=`<div class="p-4 bg-red-100 text-red-800 rounded-lg"><b class="font-baloo">Cuba lagi.</b> Jawapan yang betul ialah <b>${cor}</b>.</div>`;
+      }
+      function showView(v) { ['dashboard-screen','level-selection-screen','quiz-screen'].forEach(id=>document.getElementById(id).classList.add('hidden')); document.getElementById(v).classList.remove('hidden'); }
+      function showDashboard(){ updateUI(); showView('dashboard-screen'); }
+      function openLevelSelection(mk) {
+          const m = moduleData[mk]; const u = userData.unlockedLevels[mk];
+          const lS = document.getElementById('level-selection-screen');
+          lS.innerHTML=`<button id="back-to-dashboard" class="mb-6 bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-full">&larr; Kembali</button><h2 class="text-3xl font-baloo mb-6 text-center">${m.name}</h2><div class="space-y-4">${m.levels.map(lk=>{const locked=!u.includes(lk);return`<div id="lvl-${mk}-${lk}" class="level-card p-6 rounded-xl shadow-md ${locked?'locked':'cursor-pointer bg-white'}"><h3 class="text-xl font-baloo capitalize">${lk} ${locked?'🔒':'✅'}</h3></div>`}).join('')}</div>`;
+          showView('level-selection-screen'); document.getElementById('back-to-dashboard').onclick=showDashboard;
+          m.levels.forEach(lk=>{if(!u.includes(lk))return;document.getElementById(`lvl-${mk}-${lk}`).onclick=()=>startGeneratedQuiz(mk,lk);});
+      }
+      function constructPrompt(mk,lk) {
+          const topic=moduleData[mk].name; const kb=knowledgeBase[mk][lk];
+          const diffInst = lk==='beginner'?'basic recall':'intermediate'===lk?'application':'challenging';
+          return `You are an expert Malay language educator... CONTEXT: ${kb}... generate 5 MCQs of difficulty ${lk}, instruction: ${diffInst}. Respond JSON with questions array.`;
+      }
+      async function startGeneratedQuiz(mk,lk){
+          const qS = document.getElementById('quiz-screen');
+          qS.innerHTML=`<div class="text-center"><div class="loader"></div><h2 class="text-2xl font-baloo">Menjana Kuiz...</h2><p>Sila tunggu sebentar.</p></div>`;
+          showView('quiz-screen');
+          // TODO: replace URL and key
+          const res = await fetch('https://hook.make.com/xyz123',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({profileId:currentProfile.id,module:mk,level:lk,history:[]})});
+          const json=await res.json(); loadQuiz(json.questions,mk,lk);
+      }
+      function loadQuiz(questions,mk,lk){
+          const qS = document.getElementById('quiz-screen');
+          qS.innerHTML=`<button id="back-btn" class="mb-4 bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-full">&larr; Kembali</button><h2 id="quiz-title" class="text-3xl font-baloo mb-2 capitalize">${moduleData[mk].name} - ${lk}</h2><div id="quiz-content"></div>`;
+          document.getElementById('back-btn').onclick=()=>openLevelSelection(mk);
+          let idx=0,score=0;
+          function render(){
+              if(idx>=questions.length){finish();return;}
+              const q=questions[idx]; const opts=[...q.o,q.a].sort(()=>Math.random()-.5);
+              document.getElementById('quiz-content').innerHTML=`<p class="text-lg mb-4">(${idx+1}/${questions.length}) ${q.q}</p><div id="options-container" class="space-y-2">${opts.map(o=>`<button class="w-full text-left bg-gray-100 p-4 rounded-lg hover:bg-blue-100 option-btn" data-answer="${o}">${o}</button>`).join('')}</div><div id="feedback-container" class="mt-4"></div><button id="next-q-btn" class="hidden mt-4 w-full bg-blue-500 text-white font-bold py-3 px-8 rounded-full">Seterusnya</button>`;
+              document.querySelectorAll('.option-btn').forEach(b=>b.onclick=e=>answer(e.target)); document.getElementById('next-q-btn').onclick=render;
+          }
+          function answer(btn){
+              document.querySelectorAll('.option-btn').forEach(b=>b.disabled=true);
+              const sel=btn.dataset.answer; const q=questions[idx];
+              if(sel===q.a){score++;btn.classList.add('bg-green-200');userData.points+=10;userData.tokens++;document.getElementById('feedback-container').innerHTML=`<div class="p-4 bg-green-100 text-green-800 rounded-lg"><b class="font-baloo">Betul!</b> +10 mata, +1 Token 🪙<br><small>${q.exp}</small></div>`;} else {btn.classList.add('bg-red-200');document.getElementById('feedback-container').innerHTML=`<div class="p-4 bg-red-100 text-red-800 rounded-lg"><b class="font-baloo">Kurang tepat.</b> Jawapan betul: <b>${q.a}</b>.<br><small>${q.exp}</small></div>`;}
+              idx++; document.getElementById('next-q-btn').classList.remove('hidden');
+          }
+          function finish(){
+              const pct=(score/questions.length)*100;
+              let resHtml=`<div class="text-center"><h2 class="text-2xl font-baloo mb-2">Kuiz Selesai!</h2><p class="text-xl">Skor anda: ${score}/${questions.length} (${pct.toFixed(0)}%)</p>`;
+              const lvls=moduleData[mk].levels; const ci=lvls.indexOf(lk),nx=lvls[ci+1];
+              if(pct>=80&&nx&&!userData.unlockedLevels[mk].includes(nx)){userData.unlockedLevels[mk].push(nx);resHtml+=`<p class="mt-4 text-green-600 font-bold">Tahniah! Anda telah membuka tahap ${nx}!</p>`;} else if(pct<80&&nx&&!userData.unlockedLevels[mk].includes(nx)){resHtml+=`<p class="mt-4 text-red-600 font-bold">Cuba lagi! Anda perlukan sekurang-kurangnya 80% untuk membuka tahap seterusnya.</p>`;}
+              resHtml+=`<button id="finish-btn" class="mt-6 bg-blue-500 text-white font-bold py-3 px-8 rounded-full">Selesai</button></div>`;
+              document.getElementById('quiz-content').innerHTML=resHtml;document.getElementById('finish-btn').onclick=()=>openLevelSelection(mk);
+          }
+          render();
+      }
+      // Initialize
+      document.querySelectorAll('.module-card').forEach(c=>c.onclick=()=>openLevelSelection(c.id.split('-')[1]));
+      main();
     }
 
     // 5) Bootstrap
