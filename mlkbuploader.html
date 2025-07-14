@@ -1,38 +1,90 @@
 <!DOCTYPE html>
-<html>
-  <head><meta charset="utf-8" /><title>Supabase Test</title></head>
-  <body>
-    <h1>Supabase Test</h1>
-    <pre id="output">Loading…</pre>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Supabase Profile Test</title>
+  <style>
+    body { font-family: sans-serif; margin: 2rem; }
+    label, button { font-size: 1rem; margin-top: 1rem; display: block; }
+    pre { background: #f4f4f4; padding: 1rem; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <h1>Supabase Profile Test</h1>
 
-    <!-- 1) Load the UMD bundle -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-    <script>
-      // 2) Supabase creds
-      const SUPABASE_URL = 'https://qvowmphqmflfanjospqm.supabase.co';
-      const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF2b3dtcGhxbWZsZmFuam9zcHFtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI0NTY3NTksImV4cCI6MjA2ODAzMjc1OX0.-AdJqEXD8N5C4iNQH3W3s6e1swVompOMQh0rTj3gXQk';
+  <label>
+    Username:
+    <input id="username" type="text" placeholder="e.g. Alice" />
+  </label>
+  <button id="login-btn">Login / Create Profile</button>
 
-      // 3) Do NOT reuse the name “supabase” here—pick something new
-      const supaClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  <h2>Greeting</h2>
+  <pre id="greeting">—</pre>
 
-      async function testProfiles() {
-        const outputEl = document.getElementById('output');
-        try {
-          // 4) Use supaClient, not supabase
-          const { data, error } = await supaClient
-            .from('profiles')
-            .select('*');
+  <h2>All Profiles</h2>
+  <pre id="output">Loading…</pre>
 
-          console.log('Supabase response:', { data, error });
-          if (error) throw error;
-          outputEl.textContent = JSON.stringify(data, null, 2);
-        } catch (err) {
-          console.error('❌ Supabase error:', err);
-          outputEl.textContent = 'Error: ' + err.message;
-        }
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script>
+    // 1. Supabase creds
+    const SUPABASE_URL = 'https://qvowmphqmflfanjospqm.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF2b3dtcGhxbWZsZmFuam9zcHFtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI0NTY3NTksImV4cCI6MjA2ODAzMjc1OX0.-AdJqEXD8N5C4iNQH3W3s6e1swVompOMQh0rTj3gXQk';
+    const supa = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // 2. Utility: load & display all profiles
+    async function loadProfiles() {
+      const { data, error } = await supa
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: true });
+      if (error) {
+        document.getElementById('output').textContent = 'Error: ' + error.message;
+      } else {
+        document.getElementById('output').textContent = JSON.stringify(data, null, 2);
+      }
+    }
+
+    // 3. On login button click
+    document.getElementById('login-btn').addEventListener('click', async () => {
+      const username = document.getElementById('username').value.trim();
+      if (!username) {
+        return alert('Please enter a username.');
       }
 
-      window.addEventListener('DOMContentLoaded', testProfiles);
-    </script>
-  </body>
+      // 3a. Check if profile exists
+      const { data: existing, error: selectErr } = await supa
+        .from('profiles')
+        .select('*')
+        .eq('username', username);
+
+      if (selectErr) {
+        return document.getElementById('greeting').textContent = 'Error: ' + selectErr.message;
+      }
+
+      let profile;
+      if (existing.length === 0) {
+        // 3b. Create a new profile
+        const { data: newProfile, error: insertErr } = await supa
+          .from('profiles')
+          .insert({ username })
+          .single();
+
+        if (insertErr) {
+          return document.getElementById('greeting').textContent = 'Error: ' + insertErr.message;
+        }
+        profile = newProfile;
+      } else {
+        profile = existing[0];
+      }
+
+      // 3c. Show greeting & reload list
+      document.getElementById('greeting').textContent =
+        `Hello, ${profile.username}! (ID: ${profile.id})`;
+      loadProfiles();
+    });
+
+    // 4. On page load
+    window.addEventListener('DOMContentLoaded', loadProfiles);
+  </script>
+</body>
 </html>
