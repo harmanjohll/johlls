@@ -1,138 +1,228 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <title>Supabase Mastery Test (via n8n)</title>
-  <style>
-    body { font-family: sans-serif; margin: 2rem; }
-    label, button { font-size: 1rem; margin-top: 1rem; display: block; }
-    pre  { background: #f4f4f4; padding: 1rem; border-radius: 4px; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Malay Language Adventure</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Baloo+2:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f0f4f8; }
+        .font-baloo { font-family: 'Baloo 2', cursive; }
+        .level-card { transition: all 0.2s ease-in-out; }
+        .level-card.locked { background-color: #e5e7eb; color: #9ca3af; cursor: not-allowed; }
+        .level-card:not(.locked):hover { transform: translateY(-5px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05); }
+        .challenge-completed { opacity: 0.7; background: #d1fae5; cursor: not-allowed; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; }
+    </style>
 </head>
-<body>
-  <h1>Supabase Mastery Test (via n8n)</h1>
+<body class="bg-blue-50 text-gray-800">
 
-  <!-- Login Section -->
-  <label>
-    Username:
-    <input id="username" type="text" placeholder="e.g. Alice" />
-  </label>
-  <button id="login-btn">Login / Create Profile</button>
+    <div id="app-container" class="max-w-4xl mx-auto p-4 md:p-6">
+        <header class="flex justify-between items-center bg-white p-4 rounded-xl shadow-md mb-6">
+            <h1 class="text-2xl md:text-3xl font-baloo text-blue-600">Selamat Datang!</h1>
+            <div id="user-profile" class="text-right">
+                <div class="font-semibold text-lg" id="user-name-display">Murid</div>
+                <div class="text-sm text-yellow-500"><span id="user-points">0</span> points ✨</div>
+            </div>
+        </header>
 
-  <!-- Greeting -->
-  <h2>Greeting</h2>
-  <pre id="greeting">—</pre>
+        <main id="main-content">
+            <!-- DASHBOARD SCREEN -->
+            <div id="dashboard-screen">
+                 <div id="learner-dashboard">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <div class="bg-white p-4 rounded-xl shadow text-center"><h3 class="font-semibold text-gray-500">Pangkat</h3><p id="user-rank" class="text-2xl font-baloo text-blue-500">Baru</p></div>
+                        <div class="bg-white p-4 rounded-xl shadow text-center"><h3 class="font-semibold text-gray-500">Lencana</h3><div id="badges-display" class="flex justify-center items-center space-x-2 mt-2"><span class="text-gray-400">Tiada lagi</span></div></div>
+                        <div class="bg-white p-4 rounded-xl shadow text-center"><h3 class="font-semibold text-gray-500">Tokens</h3><p id="user-tokens" class="text-2xl font-baloo text-purple-500">0 🪙</p></div>
+                    </div>
+                    <div id="daily-word-container" class="mb-6">
+                        <h2 class="text-2xl font-baloo mb-4">Kata Hari Ini (Word of the Day)</h2>
+                        <div id="daily-word-card" class="bg-green-200 p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow cursor-pointer border-2 border-green-400">
+                            <h3 class="text-xl font-baloo text-green-800"></h3>
+                            <p class="text-green-700 mt-2"></p>
+                        </div>
+                    </div>
+                    <div id="module-selection">
+                        <h2 class="text-2xl font-baloo mb-4">Pilih Modul (Choose a Module)</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div id="module-imbuhan" class="module-card bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow cursor-pointer"><h3 class="text-xl font-baloo text-teal-600">Imbuhan</h3><p class="text-gray-600 mt-2">Kuasai seni imbuhan Melayu.</p></div>
+                            <div id="module-peribahasa" class="module-card bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow cursor-pointer"><h3 class="text-xl font-baloo text-indigo-600">Peribahasa</h3><p class="text-gray-600 mt-2">Pelajari peribahasa untuk bahasa yang indah.</p></div>
+                        </div>
+                    </div>
+                 </div>
+            </div>
+            
+            <div id="level-selection-screen" class="hidden bg-white p-8 rounded-xl shadow-md"></div>
+            <div id="quiz-screen" class="hidden bg-white p-8 rounded-xl shadow-md"></div>
+        </main>
+    </div>
+    
+    <div id="achievement-notification" class="hidden fixed bottom-5 right-5 bg-green-500 text-white p-4 rounded-lg shadow-xl w-64"><p class="font-bold">Lencana Baru!</p><p id="achievement-name"></p></div>
 
-  <!-- Profile List -->
-  <h2>All Profiles</h2>
-  <pre id="output">Loading…</pre>
+    <script type="module">
+        // --- In-App Knowledge Base (from your documents) ---
+        const knowledgeBase = {
+            imbuhan: {
+                beginner: "Awalan 'meN-' menjadi 'meng-' apabila bertemu kata dasar bermula dengan huruf g, h, dan vokal (a, e, i, o, u). Contoh: meng- + gali = menggali. Awalan 'peN-' menjadi 'pem-' jika bertemu huruf b. Contoh: pem- + baca = pembaca. Awalan 'pe-' digunakan untuk orang yang melakukan pekerjaan, contoh: pe- + sawah = pesawah.",
+                intermediate: "Imbuhan apitan 'ke-...-an' membentuk kata nama abstrak yang merujuk kepada hal atau keadaan. Contoh: baik -> kebaikan. Imbuhan apitan 'ber-...-an' boleh membawa maksud perbuatan yang berbalasan atau ramai pelaku. Contoh: salam -> bersalam-salaman. Imbuhan sisipan seperti '-el-' dalam 'geletar' menunjukkan perbuatan yang berulang-ulang atau intens.",
+                advanced: "Akhiran '-kan' dan '-i' kedua-duanya membentuk kata kerja transitif. Perbezaannya, '-kan' sering membawa maksud benefaktif (melakukan untuk orang lain) atau kausatif (menyebabkan jadi), manakala '-i' sering membawa maksud lokatif (merujuk tempat) atau menyebabkan sesuatu terjadi pada objek secara langsung. Contoh: 'Saya hadiahkan buku ini kepadanya' vs 'Saya menghadiahi dia sebuah buku'. 'Memper-' digunakan dengan kata adjektif (memperbesar), manakala 'memper-...-kan' digunakan dengan kata nama (mempersembahkan)."
+            },
+            peribahasa: {
+                beginner: "Peribahasa 'bagai aur dengan tebing' bermaksud hubungan yang sangat rapat dan saling membantu. 'Anak emas' bermaksud orang yang sangat disayangi. 'Ambil berat' bermaksud memberikan perhatian. 'Buah tangan' ialah hadiah.",
+                intermediate: "'Berat sama dipikul, ringan sama dijinjing' bermaksud bekerjasama dalam melakukan sesuatu kerja, baik susah mahupun senang. 'Seperti katak di bawah tempurung' bermaksud orang yang cetek pengetahuannya dan tidak tahu perkembangan dunia luar. 'Cakar ayam' bermaksud tulisan yang buruk.",
+                advanced: "'Mencurah air ke daun keladi' bermaksud memberi nasihat yang sia-sia atau tidak dihargai. 'Hati gajah sama dilapah, hati kuman sama dicecah' bermaksud pengagihan yang adil dan saksama, susah senang ditanggung bersama. 'Campur tangan' bermaksud melibatkan diri dalam hal orang lain."
+            }
+        };
 
-  <!-- Concept & Mastery Section -->
-  <div id="mastery-section" style="display:none; margin-top:2rem;">
-    <label>
-      Concept:
-      <select id="concept-select">
-        <option value="imbuhan_meN">Imbuhan: awalan meN-</option>
-        <option value="peribahasa_aur_tebing">Peribahasa: bagai aur dengan tebing</option>
-      </select>
-    </label>
-    <button id="load-mastery-btn">Load Mastery</button>
+        // --- DOM Elements ---
+        const allScreens = ['dashboard-screen', 'level-selection-screen', 'quiz-screen'];
+        
+        // --- User Data ---
+        let userData = {};
+        
+        const wordsOfTheDay = [
+            { word: 'Cekal', meaning: 'Resilient / determined', sentence: "Kita mesti ______ menghadapi cabaran hidup.", options: ["cekik", "cekal", "cekap"] },
+            { word: 'Muafakat', meaning: 'Consensus / agreement', sentence: "Kejayaan majlis itu adalah hasil ______ semua ahli jawatankuasa.", options: ["muafakat", "mufakat", "muflis"] },
+        ];
 
-    <h2>Mastery Record</h2>
-    <pre id="mastery-output">—</pre>
-  </div>
+        const moduleData = {
+            imbuhan: { name: "Imbuhan", levels: ["beginner", "intermediate", "advanced"] },
+            peribahasa: { name: "Peribahasa", levels: ["beginner", "intermediate", "advanced"] }
+        };
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-  <script>
-    // 1) Supabase init
-    const SUPABASE_URL = 'https://qvowmphqmflfanjospqm.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF2b3dtcGhxbWZsZmFuam9zcHFtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI0NTY3NTksImV4cCI6MjA2ODAzMjc1OX0.-AdJqEXD8N5C4iNQk';
-    const supa = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        // ─── NEW: n8n webhook constants ───────────────────────────────────────────────
+        const N8N_BASE = 'https://harmanjohll.app.n8n.cloud';
+        const START_QUIZ_URL = `${N8N_BASE}/webhook/start-quiz`;
+        // (for testing, you could use `/webhook-test/start-quiz`)
 
-    // ─── NEW: n8n webhook constants ─────────────────────────────────────────────
-    // Replace with your actual n8n.cloud domain
-    const N8N_BASE = 'https://harmanjohll.app.n8n.cloud';
-    const MASTERY_WEBHOOK = `${N8N_BASE}/webhook/get-mastery`;
-    // (or use `/webhook-test/get-mastery` if you haven’t activated the prod endpoint)
-
-    let currentProfile = null;
-
-    // 2) Load and display all profiles
-    async function loadProfiles() {
-      const { data, error } = await supa
-        .from('profiles')
-        .select('*')
-        .order('created_at', { ascending: true });
-
-      document.getElementById('output').textContent =
-        error ? 'Error: ' + error.message : JSON.stringify(data, null, 2);
-    }
-
-    // 3) Login / create profile
-    document.getElementById('login-btn').addEventListener('click', async () => {
-      const username = document.getElementById('username').value.trim();
-      if (!username) return alert('Please enter a username.');
-
-      // Check existing
-      let { data: existing, error: selectErr } = await supa
-        .from('profiles')
-        .select('*')
-        .eq('username', username);
-
-      if (selectErr) {
-        return (document.getElementById('greeting').textContent =
-          'Error: ' + selectErr.message);
-      }
-
-      if (existing.length === 0) {
-        // Insert new
-        const { data: newProfile, error: insertErr } = await supa
-          .from('profiles')
-          .insert({ username })
-          .single();
-        if (insertErr) {
-          return (document.getElementById('greeting').textContent =
-            'Error: ' + insertErr.message);
+        // --- Main App Logic ---
+        function main() {
+            loadOrCreateUser();
+            showDashboard();
         }
-        currentProfile = newProfile;
-      } else {
-        currentProfile = existing[0];
-      }
+        
+        // --- User & Auth Functions ---
+        function loadOrCreateUser() {
+            const savedData = localStorage.getItem('malayAdventureUserData');
+            if (savedData) {
+                userData = JSON.parse(savedData);
+            } else {
+                userData = { name: `Murid`, points: 0, tokens: 0, rank: 'Baru', badges: [], unlockedLevels: { imbuhan: ['beginner'], peribahasa: ['beginner'] }, lastWordDate: null };
+                saveUserData();
+            }
+        }
 
-      document.getElementById('greeting').textContent =
-        `Hello, ${currentProfile.username}! (ID: ${currentProfile.id})`;
+        function saveUserData() {
+            localStorage.setItem('malayAdventureUserData', JSON.stringify(userData));
+        }
 
-      // Show mastery controls
-      document.getElementById('mastery-section').style.display = 'block';
-      loadProfiles();
-    });
+        function updateUI() {
+            const userElements = { 'user-name-display': userData.name, 'user-points': userData.points, 'user-tokens': `${userData.tokens} 🪙`, 'user-rank': userData.rank };
+            for (const id in userElements) document.getElementById(id).textContent = userElements[id];
+            const badgesDisplay = document.getElementById('badges-display');
+            badgesDisplay.innerHTML = '';
+            if (userData.badges.length) userData.badges.forEach(b=>badgesDisplay.innerHTML+=`<span title="${b.name}" class="text-2xl">${b.icon}</span>`);
+            else badgesDisplay.innerHTML = '<span class="text-gray-400 text-sm">Tiada lagi</span>';
+            setupWordOfTheDay();
+        }
+        
+        // --- Daily Word Logic ---
+        function setupWordOfTheDay() {
+            const today = new Date().toISOString().split('T')[0];
+            const wordIndex = new Date(today).getDate() % wordsOfTheDay.length;
+            const wd = wordsOfTheDay[wordIndex];
+            const card = document.getElementById('daily-word-card');
+            const h3 = card.querySelector('h3'), p = card.querySelector('p');
+            if (userData.lastWordDate === today) {
+                card.classList.add('challenge-completed'); h3.textContent='Syabas!'; p.textContent='Anda telah melengkapkan kata hari ini. Kembali esok!'; card.onclick=null;
+            } else {
+                card.classList.remove('challenge-completed');
+                h3.textContent=`Kata Hari Ini: ${wd.word}`; p.textContent=`Maksud: ${wd.meaning}. Gunakannya dalam ayat!`;
+                card.onclick = ()=>showWordOfTheDayQuiz(wd);
+            }
+        }
 
-    // 4) Load or create mastery record via n8n webhook
-    document.getElementById('load-mastery-btn').addEventListener('click', async () => {
-      if (!currentProfile) return alert('Please login first.');
-      const concept = document.getElementById('concept-select').value;
+        function showWordOfTheDayQuiz(wd) {
+            const qs = document.getElementById('quiz-screen');
+            qs.innerHTML = `
+                <button id="back-btn" class="mb-4 bg-gray-300 py-2 px-4 rounded-full">&larr; Kembali</button>
+                <h2 class="text-3xl font-baloo mb-2">Kata Hari Ini: ${wd.word}</h2>
+                <p class="text-lg mb-4">${wd.sentence}</p>
+                <div id="options-container" class="space-y-2">
+                  ${[...wd.options, wd.word].sort(()=>Math.random()-0.5).map(o=>
+                    `<button class="w-full bg-gray-100 p-4 rounded-lg hover:bg-blue-100 option-btn" data-answer="${o}">${o}</button>`
+                  ).join('')}
+                </div><div id="feedback-container" class="mt-4"></div>`;
+            showView('quiz-screen');
+            document.querySelectorAll('.option-btn').forEach(b=>b.onclick=e=>handleWordOfTheDayAnswer(e.target.dataset.answer, wd.word));
+            document.getElementById('back-btn').onclick = ()=>showDashboard();
+        }
 
-      try {
-        const resp = await fetch(MASTERY_WEBHOOK, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            profileId: currentProfile.id,
-            concept: concept
-          })
-        });
-        if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`);
-        const { mastery } = await resp.json();
-        document.getElementById('mastery-output').textContent =
-          JSON.stringify(mastery, null, 2);
-      } catch (err) {
-        document.getElementById('mastery-output').textContent =
-          'Error fetching mastery: ' + err.message;
-      }
-    });
+        function handleWordOfTheDayAnswer(sel, corr) {
+            document.querySelectorAll('.option-btn').forEach(b=>b.disabled=true);
+            const fb = document.getElementById('feedback-container');
+            if (sel===corr) {
+                userData.points+=15; userData.lastWordDate=new Date().toISOString().split('T')[0]; saveUserData(); updateUI();
+                fb.innerHTML=`<div class="p-4 bg-green-100 text-green-800 rounded-lg"><b>Betul!</b> Anda dapat 15 mata!</div>`;
+            } else {
+                fb.innerHTML=`<div class="p-4 bg-red-100 text-red-800 rounded-lg"><b>Cuba lagi.</b> Jawapan betul ialah <b>${corr}</b>.</div>`;
+            }
+        }
+        
+        // --- Navigation ---
+        function showView(v) { allScreens.forEach(s=>document.getElementById(s).classList.add('hidden')); document.getElementById(v).classList.remove('hidden'); }
+        function showDashboard() { updateUI(); showView('dashboard-screen'); }
 
-    // 5) Initial load
-    window.addEventListener('DOMContentLoaded', loadProfiles);
-  </script>
+        // --- Level Selection ---
+        function openLevelSelection(mk) {
+            const mod = moduleData[mk], un = userData.unlockedLevels[mk];
+            const scr = document.getElementById('level-selection-screen');
+            scr.innerHTML = `<button id="back-to-dashboard" class="mb-6 bg-gray-300 py-2 px-4 rounded-full">&larr; Kembali</button><h2 class="text-3xl font-baloo mb-6 text-center">${mod.name}</h2>`;
+            mod.levels.forEach(lk=>{
+                const isLocked = !un.includes(lk);
+                scr.innerHTML += `<div id="level-${mk}-${lk}" class="level-card p-6 rounded-xl shadow-md ${isLocked?'locked':'cursor-pointer bg-white'}"><h3 class="text-xl font-baloo capitalize">${lk} ${isLocked?'🔒':'✅'}</h3></div>`;
+            });
+            showView('level-selection-screen');
+            document.getElementById('back-to-dashboard').onclick = showDashboard;
+            mod.levels.forEach(lk=>{ if (un.includes(lk)) document.getElementById(`level-${mk}-${lk}`).onclick = ()=>startGeneratedQuiz(mk,lk); });
+        }
+
+        // --- Prompt Construction (unused by n8n) ---
+        function constructPrompt(mk, lk) { /* ... unchanged ... */ }
+
+        // ─── UPDATED: Quiz Generation via n8n ───────────────────────────────────────
+        async function startGeneratedQuiz(moduleKey, levelKey) {
+            const quizScreen = document.getElementById('quiz-screen');
+            quizScreen.innerHTML = `<div class="text-center"><div class="loader"></div><h2 class="text-2xl font-baloo">Menjana Kuiz…</h2><p>Sila tunggu sebentar.</p></div>`;
+            showView('quiz-screen');
+            try {
+                const res = await fetch(START_QUIZ_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        module: moduleKey,
+                        level: levelKey,
+                        contextSnippet: knowledgeBase[moduleKey][levelKey],
+                        history: []
+                    })
+                });
+                if (!res.ok) throw new Error(`API error ${res.status}`);
+                const { questions } = await res.json();
+                loadQuiz(questions, moduleKey, levelKey);
+            } catch (err) {
+                quizScreen.innerHTML = `<div class="text-center"><h2 class="text-2xl font-baloo text-red-500">Gagal Menjana Kuiz</h2><p>${err.message}</p><button id="back-btn" class="mt-4 bg-gray-300 py-2 px-4 rounded-full">Kembali</button></div>`;
+                document.getElementById('back-btn').onclick = () => openLevelSelection(moduleKey);
+            }
+        }
+
+        // --- Quiz Loader & Flow (unchanged) ---
+        function loadQuiz(questions, moduleKey, levelKey) { /* ... unchanged ... */ }
+
+        // --- Initialize App & Hook up Modules ---
+        main();
+        document.querySelectorAll('.module-card').forEach(card => { card.onclick = () => openLevelSelection(card.id.split('-')[1]); });
+    </script>
 </body>
 </html>
