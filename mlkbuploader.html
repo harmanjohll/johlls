@@ -23,6 +23,7 @@
 <body class="bg-blue-50 text-gray-800">
 
   <div id="app-container" class="max-w-4xl mx-auto p-4 md:p-6">
+
     <!-- LOGIN / PROFILE SCREEN -->
     <div id="login-screen" class="bg-white p-8 rounded-xl shadow-md">
       <h2 class="text-2xl font-baloo mb-4">Pilih Akaun (Select Profile)</h2>
@@ -33,7 +34,7 @@
       </div>
     </div>
 
-    <!-- MAIN APP -->
+    <!-- DASHBOARD SCREEN -->
     <div id="dashboard-screen" class="hidden">
       <header class="flex justify-between items-center bg-white p-4 rounded-xl shadow-md mb-6">
         <h1 class="text-2xl md:text-3xl font-baloo text-blue-600">Selamat Datang!</h1>
@@ -96,13 +97,13 @@
   </div>
 
   <script type="module">
-    // ─── Supabase profiles for login ─────────────────────────────────────────
+    // ─── 1) Supabase profiles for login ─────────────────────────────────────────
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
     const SUPABASE_URL = 'https://qvowmphqmflfanjospqm.supabase.co';
-    const SUPABASE_KEY = 'YOUR_SUPABASE_ANON_KEY';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF2b3dtcGhxbWZsZmFuam9zcHFtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI0NTY3NTksImV4cCI6MjA2ODAzMjc1OX0.-AdJqEXD8N5C4iNQH3W3s6e1swVompOMQh0rTj3gXQk';
     const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // ─── KB fetch for Imbuhan (static MD) ────────────────────────────────────
+    // ─── 2) KB fetch for Imbuhan (static MD) ────────────────────────────────────
     const KB_URL = 'https://harmanjohll.github.io/learnmalay/Imbuhan_KB.md';
     let imbuhanKB = '';
     fetch(KB_URL)
@@ -110,7 +111,7 @@
       .then(txt => { imbuhanKB = txt; })
       .catch(console.error);
 
-    // ─── In‑App Data & KB ─────────────────────────────────────────────────────
+    // ─── 3) In‑App Data & KB ─────────────────────────────────────────────────────
     const knowledgeBase = {
       imbuhan: { beginner: () => imbuhanKB },
       peribahasa: { beginner: () => '(KB Peribahasa menyusul)' }
@@ -126,10 +127,10 @@
     const allScreens = ['login-screen','dashboard-screen','level-selection-screen','quiz-screen'];
     let currentProfile = null, userData = {};
 
-    // ─── 1) Profile Login ─────────────────────────────────────────────────────
+    // ─── 4) Profile Login ──────────────────────────────────────────────────────
     async function loadProfiles() {
       showView('login-screen');
-      const { data:profiles } = await supabase.from('profiles').select('*');
+      const { data:profiles } = await supabase.from('profiles').select('*').order('created_at');
       const list = document.getElementById('profiles-list');
       list.innerHTML = '';
       profiles.forEach(p => {
@@ -142,7 +143,7 @@
       document.getElementById('create-profile-btn').onclick = async () => {
         const name = document.getElementById('new-username').value.trim();
         if (!name) return;
-        const { data:newP } = await supabase.from('profiles').insert({ username: name }).select().single();
+        const { data:newP } = await supabase.from('profiles').insert({ username:name }).select().single();
         currentProfile = newP;
         loadOrCreateUser();
         showDashboard();
@@ -154,7 +155,15 @@
       const saved = localStorage.getItem(key);
       if (saved) userData = JSON.parse(saved);
       else {
-        userData = { name:currentProfile.username, points:0, tokens:0, rank:'Baru', badges:[], unlockedLevels:{ imbuhan:['beginner'], peribahasa:['beginner'] }, lastWordDate:null };
+        userData = {
+          name: currentProfile.username,
+          points: 0,
+          tokens: 0,
+          rank: 'Baru',
+          badges: [],
+          unlockedLevels: { imbuhan:['beginner'], peribahasa:['beginner'] },
+          lastWordDate: null
+        };
         localStorage.setItem(key, JSON.stringify(userData));
       }
     }
@@ -162,7 +171,7 @@
       localStorage.setItem(`mla_${currentProfile.id}`, JSON.stringify(userData));
     }
 
-    // ─── 2) UI Navigation ─────────────────────────────────────────────────────
+    // ─── 5) UI Navigation ──────────────────────────────────────────────────────
     function showView(id) {
       allScreens.forEach(s=>document.getElementById(s).classList.add('hidden'));
       document.getElementById(id).classList.remove('hidden');
@@ -176,7 +185,7 @@
       showView('dashboard-screen');
     }
 
-    // ─── 3) Word‑of‑the‑Day ────────────────────────────────────────────────────
+    // ─── 6) Word‑of‑the‑Day ─────────────────────────────────────────────────────
     function setupWordOfTheDay() {
       const today = new Date().toISOString().split('T')[0];
       const idx = new Date(today).getDate() % wordsOfTheDay.length;
@@ -217,7 +226,7 @@
       });
     }
 
-    // ─── 4) Module & Level Selection ──────────────────────────────────────────
+    // ─── 7) Module & Level Selection ──────────────────────────────────────────
     document.querySelectorAll('.module-card').forEach(c=>c.onclick=()=>openLevelSelection(c.id.split('-')[1]));
     function openLevelSelection(mk) {
       const levels = moduleData[mk].levels;
@@ -235,17 +244,16 @@
       showView('level-selection-screen');
       levels.forEach(lk=>{
         if(!un.includes(lk)) return;
-        document.getElementById(`lvl-${mk}-${lk}`)
-          .onclick = ()=> startGeneratedQuiz(mk,lk);
+        document.getElementById(`lvl-${mk}-${lk}`).onclick = ()=> startGeneratedQuiz(mk,lk);
       });
     }
 
-    // ─── 5) Quiz Generation (calls Gemini API) ────────────────────────────────
-    function constructPrompt(mk,lk){
+    // ─── 8) Quiz Generation via Gemini ────────────────────────────────────────
+    function constructPrompt(mk,lk) {
       const ctx = knowledgeBase[mk][lk]();
-      return `CONTEXT:\n${ctx}\nGenerate 5 MCQs of level ${lk} on ${moduleData[mk].name}. Return JSON.`;
+      return `You are an expert Malay educator. CONTEXT:\n${ctx}\nGenerate 5 MCQs of difficulty ${lk} on ${moduleData[mk].name} in JSON format.`;
     }
-    async function startGeneratedQuiz(mk,lk){
+    async function startGeneratedQuiz(mk,lk) {
       const qs = document.getElementById('quiz-screen');
       qs.innerHTML = `<div class="loader"></div><h2 class="text-2xl font-baloo text-center">Menjana Kuiz…</h2>`;
       showView('quiz-screen');
@@ -263,8 +271,8 @@
           }
         );
         if(!res.ok) throw new Error(res.status);
-        const json = await res.json();
-        const questions = JSON.parse(json.candidates[0].content.parts[0].text).questions;
+        const j = await res.json();
+        const questions = JSON.parse(j.candidates[0].content.parts[0].text).questions;
         loadQuiz(questions,mk,lk);
       } catch(e) {
         qs.innerHTML = `<div class="text-red-500 text-center">Gagal: ${e.message}</div>
@@ -272,13 +280,18 @@
       }
     }
 
-    // ─── 6) Quiz UI Flow ────────────────────────────────────────────────────────
-    function loadQuiz(questions,mk,lk){
+    // ─── 9) Quiz UI Flow ────────────────────────────────────────────────────────
+    function loadQuiz(questions,mk,lk) {
       let idx=0, score=0;
-      const qs=document.getElementById('quiz-screen');
-      function render(){
-        if(idx>=questions.length) return finish();
-        const q=questions[idx];
+      const qs = document.getElementById('quiz-screen');
+      function render() {
+        if(idx>=questions.length) {
+          qs.innerHTML = `<h2 class="text-2xl font-baloo mb-2">Kuiz Selesai!</h2>
+            <p class="text-center">Skor anda: ${score}/${questions.length}</p>
+            <button onclick="openLevelSelection('${mk}')" class="mt-4 bg-blue-500 text-white px-4 py-2 rounded">Selesai</button>`;
+          return;
+        }
+        const q = questions[idx];
         qs.innerHTML = `<button onclick="openLevelSelection('${mk}')" class="mb-4 bg-gray-300 px-4 py-2 rounded">← Kembali</button>
           <h2 class="text-3xl font-baloo mb-2">${moduleData[mk].name} - ${lk}</h2>
           <p class="mb-4">(${idx+1}/${questions.length}) ${q.q}</p>
@@ -288,8 +301,8 @@
           <div id="fb" class="mt-4"></div>
           <button id="nx" class="hidden w-full mt-4 bg-blue-500 text-white py-2 rounded">Seterusnya</button>`;
         document.querySelectorAll('#opts button').forEach(b=>{
-          b.onclick=e=>{
-            const sel=e.target.dataset.ans, corr=q.a;
+          b.onclick = e=>{
+            const sel = e.target.dataset.ans; const corr = q.a;
             if(sel===corr){ score++; userData.points+=10; userData.tokens+=1; saveUserData(); }
             document.getElementById('fb').innerHTML = sel===corr
               ? `<div class="p-4 bg-green-100">Betul! +10 mata</div>`
@@ -297,21 +310,15 @@
             document.getElementById('nx').classList.remove('hidden');
           };
         });
-        document.getElementById('nx').onclick=()=>{
+        document.getElementById('nx').onclick = ()=>{
           idx++; render();
         };
-      }
-      function finish(){
-        qs.innerHTML = `<h2 class="text-2xl font-baloo mb-2">Kuiz Selesai!</h2>
-          <p class="text-center">Skor anda: ${score}/${questions.length}</p>
-          <button onclick="openLevelSelection('${mk}')" class="mt-4 bg-blue-500 text-white px-4 py-2 rounded">Selesai</button>`;
       }
       render();
     }
 
-    // ─── 7) INITIALIZE ─────────────────────────────────────────────────────────
+    // ─── 10) INITIALIZE ─────────────────────────────────────────────────────────
     window.onload = loadProfiles;
-
   </script>
 </body>
 </html>
