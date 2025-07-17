@@ -325,3 +325,318 @@ Mana-mana 2 isi berikut:
 Contoh:  
 - Marilah kita ambil bahagian dalam sesi uji bakat ini.  
 - Saya harap kita boleh mengambil bahagian dalam sesi uji bakat ini bersama-sama.  
+
+## Section 1: Imbuhan (20 markah)
+
+**Arahan:**  
+Pilih perkataan yang paling sesuai bagi setiap tempat kosong dalam petikan karangan di bawah ini.
+
+---
+
+### Petikan
+
+Tekka ialah suatu tempat yang menjadi tumpuan orang berbangsa India di Singapura hingga ke hari ini. Tempat ini **(1)________** sebagai 'Tekka' yang bermaksud 'pokok buluh'. Pada zaman dahulu, **(2)________** banyak kerbau yang telah dikandang di sini. Selain itu, Tekka juga menjadi pusat utama bagi para **(3)________** yang datang dari India.   
+
+Salah satu tempat yang menjadi **(4)________** ialah Pasar Tekka. Pasar ini **(5)________** pelbagai barangan keperluan harian. Rempah ratus yang **(6)________** dalam masakan harian juga boleh dibeli pada harga yang tidak terlalu mahal dan berpatutan.  
+
+Kini, Pusat Tekka merupakan **(7)________** yang ikonik bagi rakyat India di Singapura. Tempat itu sentiasa sibuk **(8)________** pekerja asing pada hujung minggu. Mereka ke sana untuk **(9)________** wang kepada keluarga dan berjumpa teman-teman. **(10)________** pula, perjalanan ke sana tidak mengambil masa yang lama. Ini kerana adanya kemudahan stesen MRT.
+
+---
+
+### Pilihan Jawapan
+
+1.  
+    1. berkenalan  
+    2. dikenali  
+    3. mengenalkan  
+    4. terkenal  
+
+2.  
+    1. didapati  
+    2. didapatkan  
+    3. pendapat  
+    4. terdapat  
+
+3.  
+    1. berniaga  
+    2. diniagakan  
+    3. peniaga  
+    4. perniagaan  
+
+4.  
+    1. bertumpu  
+    2. ditumpukan  
+    3. menumpukan  
+    4. tumpuan  
+
+5.  
+    1. berjualan  
+    2. dijual  
+    3. menjual  
+    4. penjual  
+
+6.  
+    1. berguna  
+    2. digunakan  
+    3. menggunakan  
+    4. pengguna  
+
+7.  
+    1. bangunan  
+    2. dibangunkan  
+    3. membangunkan  
+    4. terbangun  
+
+8.  
+    1. berkunjung  
+    2. dikunjungi  
+    3. pengunjung  
+    4. mengunjungi  
+
+9.  
+    1. berkirim  
+    2. dikirikan  
+    3. pengirim  
+    4. mengirimkan  
+
+10.  
+    1. Bertambah  
+    2. Ditambah  
+    3. Menambah  
+    4. Tambahan  
+
+---
+
+### Jawapan
+
+1. (2) dikenali  
+2. (4) terdapat  
+3. (3) peniaga  
+4. (4) tumpuan  
+5. (3) menjual  
+6. (2) digunakan  
+7. (1) bangunan  
+8. (2) dikunjungi  
+9. (4) mengirimkan  
+10. (4) Tambahan  
+
+## Section 2: Peribahasa (10 markah)
+
+**Arahan:**  
+Pilih peribahasa atau makna yang paling sesuai bagi setiap item dalam petikan karangan di bawah ini.
+
+---
+
+### Petikan
+
+Sarimah seorang murid kurang upaya dan terpaksa berkerusi roda untuk bergerak ke sana dan ke sini. Namun begitu, Sarimah merupakan **(11)________** kepada Puan Siti dan Encik Salim. Pada mulanya, mereka teragak-agak untuk menghantar Sarimah ke sekolah biasa kerana bimbang Sarimah akan dipinggirkan tetapi sangkaan mereka salah.
+
+Sarimah begitu disenangi oleh rakan-rakan dan guru-guru di sekolah kerana Sarimah **(12)________** dan bijak orangnya. Sarimah juga mempunyai seorang rakan bernama Izzati yang banyak membantunya dalam pergerakannya semasa di sekolah. Lama-kelamaan, persahabatan Sarimah dan Izzati **(13)________**.
+
+Ibu dan ayah Sarimah **(14)________**. Mereka mahu memberikan hadiah kepada Izzati sebagai tanda terima kasih tetapi Izzati menolak kerana dia **(15)________**. Ibu dan bapa Sarimah sangat bersyukur Sarimah mempunyai rakan seperti Izzati.
+
+---
+
+### Pilihan Jawapan
+
+11.  
+    1. orang yang amat disukai  
+    2. orang yang amat dihormati  
+    3. orang yang amat disayangi  
+    4. orang yang amat disanjungi  
+
+12.  
+    1. baik  
+    2. rajin  
+    3. prihatin  
+    4. peramah  
+
+13.  
+    1. bagai isi dengan kuku  
+    2. bagai aur dengan tebing  
+    3. bagai dakwat dengan kertas  
+    4. bagai menghitung bulu kambing  
+
+14.  
+    1. ambil berat  
+    2. lapang dada  
+    3. panjang akal  
+    4. diam-diam ubi  
+
+15.  
+    1. putih hati  
+    2. keras hati  
+    3. tajam hati  
+    4. murah hati  
+
+---
+
+### Jawapan
+
+11. (3) orang yang amat disayangi  
+12. (4) peramah  
+13. (1) bagai isi dengan kuku  
+14. (2) lapang dada  
+15. (1) putih hati  
+
+## Section 3: Golongan Kata (10 markah)
+
+**Arahan:**  
+Pilih perkataan yang paling sesuai bagi setiap tempat kosong dalam petikan karangan di bawah ini.
+
+---
+
+### Petikan
+
+Sepasukan pengakap bercadang hendak mendaki Gunung Ledang hingga ke puncak. Dalam perjalanan mereka ke puncak gunung itu, mereka terpaksa melalui hutan yang tebal. Mereka berjalan di jalan-jalan yang sempit dan **(16)________** sungai yang besar. Sungai itu cetek dan airnya **(17)________**. Mereka dapat melihat hidupan di dalam sungai itu. Mereka juga bernasib baik kerana mereka tidak bertemu dengan binatang-binatang yang buas. Apabila mereka tiba **(18)________** kaki gunung itu, hari sudah malam. Mereka berasa sangat letih kerana berjalan sepanjang hari. Mereka pun mendirikan sebuah **(19)________** berhampiran dengan sebatang pokok yang rendang.
+
+Pada malam itu, mereka membuat unggun api. Selepas makan malam, mereka duduk di sekeliling unggun api itu dan berbual-bual tentang **(20)________** mereka pada hari itu sambil memakan ubi rebus yang telah mereka sediakan. Mereka pun tidur pada pukul sepuluh malam.
+
+---
+
+### Pilihan Jawapan
+
+16.  
+    1. menjalani  
+    2. merentasi  
+    3. melangkahi  
+    4. menyeberangi  
+
+17.  
+    1. suci  
+    2. beku  
+    3. jernih  
+    4. manis  
+
+18.  
+    1. di  
+    2. ke  
+    3. dan  
+    4. akan  
+
+19.  
+    1. rumah  
+    2. banglo  
+    3. khemah  
+    4. bangunan  
+
+20.  
+    1. pengajaran  
+    2. penyaksian  
+    3. pengalaman  
+    4. pengetahuan  
+
+---
+
+### Jawapan
+
+16. (4) menyeberangi  
+17. (3) jernih  
+18. (1) di  
+19. (3) khemah  
+20. (3) pengalaman  
+
+## Section 4: Frasa (8 markah)
+
+**Arahan:**  
+Isi setiap tempat kosong dalam dialog di bawah ini dengan frasa yang paling sesuai mengikut konteks. Kemudian, tulis angka jawapan pilihan kamu itu di tempat kosong yang disediakan.
+
+---
+
+### Pilihan Frasa
+
+1. seseorang itu akan mati  
+2. akhlak yang baik harus diamalkan  
+3. ketekunan dan hormat-menghormati  
+4. orang tidak akan memandang mulia terhadap kita  
+5. memberi kita didikan dan asuhan yang secukupnya  
+6. seseorang itu tidak terarah dan mudah terpengaruh  
+
+---
+
+### Dialog
+
+Zaki: Cikgu, apakah yang dimaksudkan dengan prinsip?  
+Cikgu Ali: Zaki, prinsip ialah pegangan hidup seseorang. Tanpa prinsip, **(26)________**.
+
+Zaki: Boleh Cikgu berikan contoh?  
+Cikgu Ali: Sudah tentu boleh, Zaki. Antaranya ialah **(27)________**.
+
+Ibu pun pernah berkata, "Sekiranya kita mempunyai ilmu setinggi gunung pun, kalau kita tidak menghormati orang tua, **(28)________**."
+
+Jika kita mempunyai prinsip hidup yang baik, orang bukan sahaja menghormati kita malah menghormati ibu bapa kita juga. Mereka akan mengatakan ibu bapa kita telah berjaya **(29)________**.
+
+Zaki: Saya setuju, Cikgu. Terima kasih di atas penjelasan ini.
+
+---
+
+### Jawapan
+
+26. (6) seseorang itu tidak terarah dan mudah terpengaruh  
+27. (2) akhlak yang baik harus diamalkan  
+28. (4) orang tidak akan memandang mulia terhadap kita  
+29. (5) memberi kita didikan dan asuhan yang secukupnya  
+
+## Section 5: Rangsangan Grafik (10 markah)
+
+**Arahan:**  
+Berdasarkan brosur yang diberikan, jawab soalan-soalan berikut.
+
+---
+
+### Petikan Brosur (Ringkasan)
+Restoran Kosmopolitan, promosi cabutan bertuah untuk pelanggan sepanjang bulan Mei. Hadiah-hadiah menarik untuk dimenangi, kemudahan tempat letak kereta percuma, WiFi, restoran berhawa dingin, pelbagai pilihan makanan.
+
+---
+
+### Soalan Pilihan
+
+30. Tujuan utama iklan ini adalah untuk _________.  
+    1. mempromosikan pulau-pulau yang menarik  
+    2. mengumumkan nama chef yang baru mula bertugas  
+    3. mengiklankan cawangan Restoran Kosmopolitan yang baru dibuka  
+    4. menarik lebih ramai pelanggan agar mengunjungi Restoran Kosmopolitan
+
+31. Perbelanjaan sebanyak $100 akan membolehkan anda _________.  
+    1. menyertai cabutan bertuah  
+    2. mendapat baucar makanan  
+    3. menikmati hawa dingin di dalam restoran  
+    4. melancong ke Pulau Saujana dan Pulau Permai
+
+32. Para pelanggan yang berkenderaan dapat menikmati _________.  
+    1. pencuci mulut percuma  
+    2. baucer makanan benilai $200  
+    3. tempat meletak kereta percuma  
+    4. hawa yang dingin di dalam Restoran Kosmopolitan
+
+---
+
+### Jawapan
+
+30. (4) menarik lebih ramai pelanggan agar mengunjungi Restoran Kosmopolitan  
+31. (1) menyertai cabutan bertuah  
+32. (3) tempat meletak kereta percuma  
+
+---
+
+### Soalan Terbuka (33)
+
+Ibu, selain daripada kita dapat menikmati pilihan hidangan Melayu, Cina dan Barat, restoran ini juga ________.
+
+**Arahan:**  
+Kamu mahu mengajak ibu kamu menjamu selera di Restoran Kosmopolitan sempena Hari Ibu. Untuk meyakinkan ibu kamu itu, kamu harus menerangkan kepadanya dua keistimewaan yang terdapat di restoran tersebut. Gunakan informasi dalam brosur untuk melengkapkan pesanan ringkas di bawah ini. (4 markah)
+
+**Jawapan:**  
+Mana-mana 2 isi berikut:
+- Restoran berhawa dingin
+- Dibuka sehingga 11 malam
+- Ada cabutan bertuah pada bulan Mei
+- Hidangan istimewa Cef Jef setiap hari
+- Pencuci mulut percuma bagi hidangan petang
+- Menerima tempahan untuk majlis-majlis istimewa & korporat
+- Promosi bagi setiap perbelanjaan sebanyak $100 (berpeluang menyertai cabutan bertuah)
+
+**Ayat penutup:**  
+Contoh:  
+- Saya harap kita dapat menjamu selera di restoran Kosmopolitan ini.  
+*(Ayat penutup lain yang sesuai juga boleh diterima.)*  
