@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Malay Language Adventure</title>
+    <!-- Tailwind & Fonts -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Baloo+2:wght@400;700&display=swap" rel="stylesheet" />
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f0f4f8; }
+        .font-baloo { font-family: 'Baloo 2', cursive; }
+        .module-card:hover { transform: translateY(-5px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05); }
+        .module-card { transition: all 0.2s ease-in-out; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; }
+    </style>
+</head>
+<body class="bg-blue-50 text-gray-800">
+
+    <div id="app-container" class="max-w-4xl mx-auto p-4 md:p-6">
+        <header class="flex justify-between items-center bg-white p-4 rounded-xl shadow-md mb-6">
+            <h1 class="text-2xl md:text-3xl font-baloo text-blue-600">Selamat Datang!</h1>
+            <div id="user-profile" class="text-right hidden">
+                <div class="font-semibold text-lg" id="user-name-display"></div>
+                <a href="#" id="logout-btn" class="text-xs text-red-500 hover:underline">Logout</a>
+            </div>
+        </header>
+
+        <main id="main-content">
+            <!-- LOGIN SCREEN -->
+            <div id="login-screen" class="bg-white p-8 rounded-xl shadow-md text-center">
+                <h2 class="text-3xl font-baloo mb-4">Log Masuk / Daftar</h2>
+                <p class="text-gray-600 mb-6">Sila masukkan nama pengguna anda.</p>
+                <div class="max-w-sm mx-auto">
+                    <input type="text" id="username-input" placeholder="Nama Pengguna (e.g. Ali123)" class="w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" required>
+                    <div class="flex gap-4 mt-4">
+                        <button id="register-btn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-md transition">Daftar (New User)</button>
+                        <button id="login-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-md transition">Log Masuk (Existing User)</button>
+                    </div>
+                    <p id="login-error" class="text-red-500 text-sm mt-4 h-4"></p>
+                </div>
+            </div>
+            
+            <!-- DASHBOARD SCREEN -->
+            <div id="dashboard-screen" class="hidden">
+                 <div id="learner-dashboard">
+                     <div id="module-selection" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                         <!-- Modules will be dynamically generated here -->
+                     </div>
+                 </div>
+            </div>
+
+            <!-- QUIZ SCREEN -->
+            <div id="quiz-screen" class="hidden bg-white p-8 rounded-xl shadow-md"></div>
+        </main>
+    </div>
+
+    <script type="module">
+        // Version 2.7
+
+        // ─── (1) Setup ──────────────────────────────────────────────────────────────────
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+        const SUPABASE_URL = 'https://qvowmphqmflfanjospqm.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF2b3dtcGhxbWZsZmFuam9zcHFtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI0NTY3NTksImV4cCI6MjA2ODAzMjc1OX0.-AdJqEXD8N5C4iNQH3W3s6e1swVompOMQh0rTj3gXQk';
+        const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // **MODIFIED**: Restructured KBs. 'tatabahasa' is now used by the Imbuhan module.
+        const KB = {
+            imbuhan: { url: 'https://harmanjohll.github.io/learnmalay/Imbuhan_KB.md', content: '' },
+            peribahasa: { url: 'https://harmanjohll.github.io/learnmalay/Peribahasa_KB.md', content: '' },
+            tatabahasaPassages: { url: 'https://harmanjohll.github.io/learnmalay/QuestionsBank_KB.md', content: '' },
+            penjodohBilangan: { url: '', content: '' } // No KB, AI will use general knowledge.
+        };
+
+        // --- App State ---
+        let currentProfile = null;
+        let masteryData = {};
+        const allScreens = ['login-screen', 'dashboard-screen', 'quiz-screen'];
+        
+        // **MODIFIED**: Updated modules. 'Tatabahasa' is gone, 'Penjodoh Bilangan' is added.
+        const moduleData = {
+            imbuhan: { name: "Imbuhan", tiers: ["Murid Baru", "Pencari Ilmu", "Pakar Muda", "Mahaguru"], pointsPerTier: [5, 10, 15, 20] },
+            peribahasa: { name: "Peribahasa", tiers: ["Murid Baru", "Pencari Ilmu", "Pakar Muda", "Mahaguru"], pointsPerTier: [5, 10, 15, 20] },
+            penjodohBilangan: { name: "Penjodoh Bilangan", tiers: ["Murid Baru", "Pencari Ilmu", "Pakar Muda", "Mahaguru"], pointsPerTier: [10, 20, 30, 40] }
+        };
+
+        // ─── (2) Initialization ─────────────────────────────────────────────────────────
+        async function main() {
+            await fetchAllKnowledgeBases();
+            await checkForSavedSession();
+            document.getElementById('register-btn').addEventListener('click', handleRegister);
+            document.getElementById('login-btn').addEventListener('click', handleLogin);
+            document.getElementById('logout-btn').addEventListener('click', logout);
+        }
+
+        async function checkForSavedSession() {
+            const savedUser = localStorage.getItem('malayAdventureUser');
+            if (savedUser) {
+                await performLogin(savedUser);
+            } else {
+                showView('login-screen');
+            }
+        }
+
+        async function fetchAllKnowledgeBases() {
+            try {
+                const promises = Object.keys(KB).map(async (key) => {
+                    if (!KB[key].url) return; // Skip if no URL
+                    const response = await fetch(KB[key].url);
+                    if (!response.ok) throw new Error(`Failed to fetch ${key}`);
+                    KB[key].content = await response.text();
+                    console.log(`✅ ${key} KB loaded successfully.`);
+                });
+                await Promise.all(promises);
+            } catch (error) {
+                console.error('❌ KB load failed:', error);
+            }
+        }
+
+        // ─── (3) Profile & Data Management ───────────────────────────────────────────
+        async function handleRegister() {
+            const nameInput = document.getElementById('username-input');
+            const name = nameInput.value.trim();
+            if (!name) return;
+            
+            const loginError = document.getElementById('login-error');
+            loginError.textContent = 'Mendaftar...';
+
+            let { data: existing } = await supabase.from('profiles').select('id').eq('username', name);
+            if (existing.length > 0) return loginError.textContent = 'Nama pengguna ini telah wujud.';
+
+            // **MODIFIED**: Updated initial data for the new module structure.
+            const initialMasteryData = {
+                imbuhan: { score: 0, tier: 0 },
+                peribahasa: { score: 0, tier: 0 },
+                penjodohBilangan: { score: 0, tier: 0 }
+            };
+
+            const { data: newProfile, error: insErr } = await supabase
+                .from('profiles')
+                .insert({ username: name, progress_data: initialMasteryData })
+                .select()
+                .single();
+            
+            if (insErr) return loginError.textContent = 'Error: ' + insErr.message;
+            
+            currentProfile = newProfile;
+            masteryData = newProfile.progress_data;
+            localStorage.setItem('malayAdventureUser', name);
+            showDashboard();
+        }
+        
+        async function handleLogin() {
+            const nameInput = document.getElementById('username-input');
+            const name = nameInput.value.trim();
+            if (!name) return;
+            await performLogin(name);
+        }
+
+        async function performLogin(username) {
+            const loginError = document.getElementById('login-error');
+            loginError.textContent = 'Log masuk...';
+
+            let { data: profile, error: profileErr } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('username', username)
+                .single();
+            
+            if (profileErr || !profile) {
+                loginError.textContent = 'Nama pengguna tidak dijumpai.';
+                localStorage.removeItem('malayAdventureUser');
+                showView('login-screen');
+                return;
+            }
+            
+            currentProfile = profile;
+            
+            let needsSave = false;
+            let currentProgress = profile.progress_data || {};
+            
+            for (const moduleKey in moduleData) {
+                if (!currentProgress[moduleKey]) {
+                    currentProgress[moduleKey] = { score: 0, tier: 0 };
+                    needsSave = true;
+                }
+            }
+            
+            masteryData = currentProgress;
+            if (needsSave) {
+                await saveMasteryData(); 
+            }
+            
+            localStorage.setItem('malayAdventureUser', username);
+            loginError.textContent = '';
+            showDashboard();
+        }
+
+        async function saveMasteryData() {
+            if (!currentProfile) return;
+            const { error } = await supabase
+                .from('profiles')
+                .update({ progress_data: masteryData })
+                .eq('id', currentProfile.id);
+                
+            if (error) console.error('Error saving mastery data:', error);
+            else console.log('✅ Progress saved successfully.');
+        }
+
+        function logout() {
+            localStorage.removeItem('malayAdventureUser');
+            currentProfile = null;
+            masteryData = {};
+            document.getElementById('username-input').value = '';
+            showView('login-screen');
+        }
+
+        // ─── (4) UI & Navigation ─────────────────────────────────────────────────────────
+        function showView(viewName) {
+            allScreens.forEach(id => document.getElementById(id).classList.add('hidden'));
+            if (viewName === 'dashboard-screen') {
+                document.getElementById('user-profile').classList.remove('hidden');
+            } else {
+                document.getElementById('user-profile').classList.add('hidden');
+            }
+            document.getElementById(viewName).classList.remove('hidden');
+        }
+
+        function showDashboard() { 
+            updateDashboard();
+            showView('dashboard-screen'); 
+        }
+
+        function updateDashboard() {
+            if (!currentProfile) return;
+            document.getElementById('user-name-display').textContent = currentProfile.username;
+            
+            const moduleSelection = document.getElementById('module-selection');
+            moduleSelection.innerHTML = '';
+
+            for (const moduleKey in moduleData) {
+                const moduleInfo = moduleData[moduleKey];
+                const userModuleData = masteryData[moduleKey];
+                const currentTierName = moduleInfo.tiers[userModuleData.tier];
+                
+                const card = document.createElement('div');
+                card.className = 'module-card bg-white p-6 rounded-xl shadow-md transition-all cursor-pointer';
+                card.innerHTML = `
+                    <h3 class="text-xl font-baloo text-gray-800">${moduleInfo.name}</h3>
+                    <p class="text-sm text-gray-500 mt-2">Pangkat Semasa:</p>
+                    <p class="font-bold text-lg text-blue-600">${currentTierName}</p>
+                    <p class="text-sm text-gray-500 mt-2">Skor:</p>
+                    <p class="font-bold text-lg text-yellow-500">${userModuleData.score}</p>
+                `;
+                card.onclick = () => startQuiz(moduleKey);
+                moduleSelection.appendChild(card);
+            }
+        }
+
+        // --- (5) Quiz Generation & Flow ---
+        
+        // **MODIFIED**: This function is now significantly more advanced.
+        function constructPrompt(moduleKey, tierIndex) {
+            const topic = moduleData[moduleKey].name;
+            const tierName = moduleData[moduleKey].tiers[tierIndex];
+
+            let basePrompt = `You are Cikgu Cemerlang, a highly skilled Malay Language educator for Primary School students in Singapore. Your persona is defined by pedagogical expertise, a supportive tone, and adherence to the provided context.
+            
+            **TASK:**
+            Generate a quiz of 5 unique multiple-choice questions about '${topic}' for a student at the '${tierName}' level. The response must be a valid JSON object with a single key "questions", which is an array of 5 question objects with keys: "q", "a", "o", "exp".
+            
+            **FEEDBACK (exp) REQUIREMENTS:**
+            The 'exp' field must be excellent. It must state the rule, explain the answer, and for higher tiers, analyze the distractors.
+            `;
+
+            let creativityGuideline = `\n**CREATIVITY GUIDELINE:**
+            To ensure variety, you MUST create novel sentences and scenarios for your questions. Do not just copy examples from the CONTEXT. The core concept must come from the CONTEXT, but the presentation (the sentence, names, situation) must be new.`;
+
+            if (moduleKey === 'imbuhan') {
+                // Randomly choose between a rule-based quiz or a passage-based quiz
+                if (Math.random() < 0.75 || tierIndex < 2) { // More likely to be rule-based, especially for lower tiers
+                    basePrompt += `
+                    ---
+                    CONTEXT: ${KB.imbuhan.content}
+                    ---
+                    ${creativityGuideline}
+                    **MODULE-SPECIFIC INSTRUCTIONS (Imbuhan - Rules):**
+                    - **Question Focus:** Test the application of affix rules from the CONTEXT.
+                    - **Question Format:** For Tiers 0-2, use the "fill-in-the-blank" format. E.g., "Puan Salmah mula ____ (bunga)." Create one correct answer and three plausible distractors using other affixes or the root word. For Tier 3, you can use the "Which sentence is correct?" format to test more nuanced understanding.
+                    `;
+                } else {
+                    basePrompt += `
+                    ---
+                    CONTEXT: ${KB.tatabahasaPassages.content}
+                    ---
+                    **MODULE-SPECIFIC INSTRUCTIONS (Imbuhan - Application):**
+                    - **Task:** Randomly select ONE passage from the CONTEXT. Create 5 "fill-in-the-blank" questions based on sentences from that passage that specifically test the use of 'imbuhan'.
+                    - **Question Generation:** The question 'q' must include the full sentence with a blank. The options 'a' and 'o' must be relevant to the affix being tested.
+                    `;
+                }
+            } else if (moduleKey === 'peribahasa') {
+                basePrompt += `
+                ---
+                CONTEXT: ${KB.peribahasa.content}
+                ---
+                ${creativityGuideline}
+                **MODULE-SPECIFIC INSTRUCTIONS (Peribahasa):**
+                - **Question Focus:** Test understanding of proverb meanings and their appropriate use.
+                - **Question Format:** For Tiers 0-1, ask for the direct meaning of a proverb. For Tiers 2-3, provide a novel scenario and ask for the most suitable proverb.
+                `;
+            } else if (moduleKey === 'penjodohBilangan') {
+                basePrompt += `
+                ---
+                CONTEXT: Your own general knowledge of Malay 'Penjodoh Bilangan' (numerical classifiers) suitable for Singapore primary school students.
+                ---
+                ${creativityGuideline}
+                **MODULE-SPECIFIC INSTRUCTIONS (Penjodoh Bilangan):**
+                - **Question Focus:** Test the correct use of numerical classifiers for different nouns.
+                - **Question Format:** Use the "fill-in-the-blank" format. E.g., "Ibu membeli tiga ____ (sikat) pisang." The options should be other valid classifiers that are incorrect for the specific noun.
+                `;
+            }
+            
+            return basePrompt;
+        }
+
+        async function startQuiz(moduleKey) {
+            const quizScreen = document.getElementById('quiz-screen');
+            quizScreen.innerHTML = `<div class="text-center"><div class="loader"></div><h2 class="text-2xl font-baloo">Menjana Kuiz...</h2><p>Sila tunggu sebentar.</p></div>`;
+            showView('quiz-screen');
+            
+            const currentTier = masteryData[moduleKey].tier;
+            const prompt = constructPrompt(moduleKey, currentTier);
+            
+            const apiKey = "AIzaSyC9AKQcORYqndRZGhvTh-OqyMvE-Q7F2aI"; 
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+            const payload = {
+                contents: [{ role: "user", parts: [{ text: prompt }] }],
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: { type: "OBJECT", properties: { questions: { type: "ARRAY", items: { type: "OBJECT", properties: { q: { type: "STRING" }, a: { type: "STRING" }, o: { type: "ARRAY", items: { type: "STRING" } }, exp: { type: "STRING" } }, required: ["q", "a", "o", "exp"] } } }, required: ["questions"] }
+                }
+            };
+
+            try {
+                const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                if (!response.ok) throw new Error(`API request failed with status ${response.status}`);
+                const result = await response.json();
+                
+                if (result.candidates && result.candidates[0].content && result.candidates[0].content.parts[0].text) {
+                    const generatedData = JSON.parse(result.candidates[0].content.parts[0].text);
+                    if (generatedData.questions && generatedData.questions.length > 0) {
+                        loadQuiz(generatedData.questions, moduleKey);
+                    } else { throw new Error("API returned no questions."); }
+                } else { 
+                    console.error("API Response Error:", result);
+                    throw new Error("Invalid response structure from API."); 
+                }
+            } catch (error) {
+                quizScreen.innerHTML = `<div class="text-center"><h2 class="text-2xl font-baloo text-red-500">Gagal Menjana Kuiz</h2><p>${error.message}</p><button id="back-btn" class="mt-4 bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-full">Kembali</button></div>`;
+                document.getElementById('back-btn').onclick = showDashboard;
+            }
+        }
+
+        function loadQuiz(questions, moduleKey) {
+            const quizScreen = document.getElementById('quiz-screen');
+            const currentTier = masteryData[moduleKey].tier;
+            const tierName = moduleData[moduleKey].tiers[currentTier];
+            
+            quizScreen.innerHTML = `
+                <button id="back-btn" class="mb-4 bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-full">&larr; Kembali</button>
+                <h2 id="quiz-title" class="text-3xl font-baloo mb-2 capitalize">${moduleData[moduleKey].name} - ${tierName}</h2>
+                <div id="quiz-content"></div>`;
+            document.getElementById('back-btn').onclick = showDashboard;
+            
+            let currentQuestionIndex = 0;
+            let score = 0;
+            
+            function loadQuestion() {
+                if (currentQuestionIndex >= questions.length) {
+                    finishQuiz();
+                    return;
+                }
+                const q = questions[currentQuestionIndex];
+                const options = [...q.o, q.a].sort(() => Math.random() - 0.5);
+                document.getElementById('quiz-content').innerHTML = `
+                    <p class="text-lg mb-4" style="white-space: pre-wrap;">(${currentQuestionIndex + 1}/${questions.length}) ${q.q}</p>
+                    <div id="options-container" class="space-y-2">
+                        ${options.map(o => `<button class="w-full text-left bg-gray-100 p-4 rounded-lg hover:bg-blue-100 option-btn" data-answer="${o}">${o}</button>`).join('')}
+                    </div>
+                    <div id="feedback-container" class="mt-4"></div>
+                    <button id="next-q-btn" class="hidden mt-4 w-full bg-blue-500 text-white font-bold py-3 px-8 rounded-full">Seterusnya</button>`;
+                document.querySelectorAll('#options-container .option-btn').forEach(btn => { btn.onclick = (e) => handleAnswer(e.target); });
+                document.getElementById('next-q-btn').onclick = () => {
+                    currentQuestionIndex++;
+                    loadQuestion();
+                };
+            }
+
+            function handleAnswer(selectedBtn) {
+                document.querySelectorAll('#options-container .option-btn').forEach(btn => btn.disabled = true);
+                const selectedAnswer = selectedBtn.dataset.answer;
+                const question = questions[currentQuestionIndex];
+                const feedbackContainer = document.getElementById('feedback-container');
+
+                if (selectedAnswer === question.a) {
+                    score++;
+                    selectedBtn.classList.add('bg-green-200');
+                    feedbackContainer.innerHTML = `<div class="p-4 bg-green-100 text-green-800 rounded-lg"><b class="font-baloo">Betul!</b><br><small>${question.exp}</small></div>`;
+                } else {
+                    selectedBtn.classList.add('bg-red-200');
+                    feedbackContainer.innerHTML = `<div class="p-4 bg-red-100 text-red-800 rounded-lg"><b class="font-baloo">Kurang tepat.</b> Jawapan betul: <b>${question.a}</b>.<br><small>${question.exp}</small></div>`;
+                }
+                document.getElementById('next-q-btn').classList.remove('hidden');
+            }
+
+            function finishQuiz() {
+                const currentTier = masteryData[moduleKey].tier;
+                const pointsPerQuestion = moduleData[moduleKey].pointsPerTier[currentTier];
+                const totalPoints = score * pointsPerQuestion;
+                
+                masteryData[moduleKey].score += totalPoints;
+                
+                let feedbackHTML = `<div class="text-center"><h2 class="text-2xl font-baloo mb-2">Kuiz Selesai!</h2><p class="text-xl">Skor anda: ${score} / ${questions.length}</p><p class="mt-2">Anda mendapat ${totalPoints} mata!</p>`;
+                
+                const masteryThresholds = [50, 150, 400];
+                const oldTier = currentTier;
+                let newTier = oldTier;
+                
+                if (masteryData[moduleKey].score >= masteryThresholds[2] && oldTier < 3) newTier = 3;
+                else if (masteryData[moduleKey].score >= masteryThresholds[1] && oldTier < 2) newTier = 2;
+                else if (masteryData[moduleKey].score >= masteryThresholds[0] && oldTier < 1) newTier = 1;
+
+                if (newTier > oldTier) {
+                    masteryData[moduleKey].tier = newTier;
+                    feedbackHTML += `<p class="mt-4 text-green-600 font-bold">Tahniah! Pangkat anda telah meningkat ke ${moduleData[moduleKey].tiers[newTier]}!</p>`;
+                }
+                
+                feedbackHTML += `<button id="finish-btn" class="mt-6 bg-blue-500 text-white font-bold py-3 px-8 rounded-full">Kembali ke Dashboard</button></div>`;
+                document.getElementById('quiz-content').innerHTML = feedbackHTML;
+                document.getElementById('finish-btn').onclick = showDashboard;
+                
+                saveMasteryData();
+            }
+            
+            loadQuestion();
+        }
+        
+        // --- Initialize App ---
+        main();
+        
+    </script>
+</body>
+</html>
