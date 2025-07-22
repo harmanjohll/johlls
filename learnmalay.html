@@ -14,6 +14,7 @@
         .module-card { transition: all 0.2s ease-in-out; }
         @keyframes spin { to { transform: rotate(360deg); } }
         .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; }
+        .word-card { border-left: 4px solid #3498db; }
     </style>
 </head>
 <body class="bg-blue-50 text-gray-800">
@@ -45,6 +46,18 @@
             <!-- DASHBOARD SCREEN -->
             <div id="dashboard-screen" class="hidden">
                  <div id="learner-dashboard">
+                    <!-- **NEW**: Error banner -->
+                    <div id="error-banner" class="hidden mb-6 bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-md" role="alert">
+                        <p class="font-bold">Ralat Rangkaian</p>
+                        <p>Gagal memuat turun bahan pembelajaran. Sila semak sambungan internet anda dan cuba lagi.</p>
+                    </div>
+                    <!-- 5 Words of the Day section -->
+                    <div id="daily-words-section" class="mb-8 bg-white p-6 rounded-xl shadow-md">
+                        <h2 class="text-2xl font-baloo text-gray-800 mb-4">5 Perkataan Hari Ini</h2>
+                        <div id="daily-words-content">
+                            <div class="loader"></div>
+                        </div>
+                    </div>
                      <div id="module-selection" class="grid grid-cols-1 md:grid-cols-3 gap-6">
                          <!-- Modules will be dynamically generated here -->
                      </div>
@@ -57,7 +70,7 @@
     </div>
 
     <script type="module">
-        // Version 2.7
+        // Version 2.8 (with fix)
 
         // ─── (1) Setup ──────────────────────────────────────────────────────────────────
         import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
@@ -65,12 +78,11 @@
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF2b3dtcGhxbWZsZmFuam9zcHFtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI0NTY3NTksImV4cCI6MjA2ODAzMjc1OX0.-AdJqEXD8N5C4iNQH3W3s6e1swVompOMQh0rTj3gXQk';
         const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // **MODIFIED**: Restructured KBs. 'tatabahasa' is now used by the Imbuhan module.
         const KB = {
             imbuhan: { url: 'https://harmanjohll.github.io/learnmalay/Imbuhan_KB.md', content: '' },
             peribahasa: { url: 'https://harmanjohll.github.io/learnmalay/Peribahasa_KB.md', content: '' },
             tatabahasaPassages: { url: 'https://harmanjohll.github.io/learnmalay/QuestionsBank_KB.md', content: '' },
-            penjodohBilangan: { url: '', content: '' } // No KB, AI will use general knowledge.
+            penjodohBilangan: { url: '', content: '' } 
         };
 
         // --- App State ---
@@ -78,7 +90,6 @@
         let masteryData = {};
         const allScreens = ['login-screen', 'dashboard-screen', 'quiz-screen'];
         
-        // **MODIFIED**: Updated modules. 'Tatabahasa' is gone, 'Penjodoh Bilangan' is added.
         const moduleData = {
             imbuhan: { name: "Imbuhan", tiers: ["Murid Baru", "Pencari Ilmu", "Pakar Muda", "Mahaguru"], pointsPerTier: [5, 10, 15, 20] },
             peribahasa: { name: "Peribahasa", tiers: ["Murid Baru", "Pencari Ilmu", "Pakar Muda", "Mahaguru"], pointsPerTier: [5, 10, 15, 20] },
@@ -106,8 +117,9 @@
         async function fetchAllKnowledgeBases() {
             try {
                 const promises = Object.keys(KB).map(async (key) => {
-                    if (!KB[key].url) return; // Skip if no URL
-                    const response = await fetch(KB[key].url);
+                    if (!KB[key].url) return;
+                    // **FIXED**: Added fetch options to make the request more robust.
+                    const response = await fetch(KB[key].url, { mode: 'cors', cache: 'no-cache' });
                     if (!response.ok) throw new Error(`Failed to fetch ${key}`);
                     KB[key].content = await response.text();
                     console.log(`✅ ${key} KB loaded successfully.`);
@@ -115,6 +127,8 @@
                 await Promise.all(promises);
             } catch (error) {
                 console.error('❌ KB load failed:', error);
+                // **FIXED**: Show a user-friendly error banner on the dashboard.
+                document.getElementById('error-banner').classList.remove('hidden');
             }
         }
 
@@ -130,7 +144,6 @@
             let { data: existing } = await supabase.from('profiles').select('id').eq('username', name);
             if (existing.length > 0) return loginError.textContent = 'Nama pengguna ini telah wujud.';
 
-            // **MODIFIED**: Updated initial data for the new module structure.
             const initialMasteryData = {
                 imbuhan: { score: 0, tier: 0 },
                 peribahasa: { score: 0, tier: 0 },
@@ -229,6 +242,7 @@
 
         function showDashboard() { 
             updateDashboard();
+            handleDailyWords();
             showView('dashboard-screen'); 
         }
 
@@ -260,7 +274,6 @@
 
         // --- (5) Quiz Generation & Flow ---
         
-        // **MODIFIED**: This function is now significantly more advanced.
         function constructPrompt(moduleKey, tierIndex) {
             const topic = moduleData[moduleKey].name;
             const tierName = moduleData[moduleKey].tiers[tierIndex];
@@ -268,26 +281,32 @@
             let basePrompt = `You are Cikgu Cemerlang, a highly skilled Malay Language educator for Primary School students in Singapore. Your persona is defined by pedagogical expertise, a supportive tone, and adherence to the provided context.
             
             **TASK:**
-            Generate a quiz of 5 unique multiple-choice questions about '${topic}' for a student at the '${tierName}' level. The response must be a valid JSON object with a single key "questions", which is an array of 5 question objects with keys: "q", "a", "o", "exp".
+            Generate a quiz of 5 unique multiple-choice questions about '${topic}' for a student at the '${tierName}' level.
+            The response must be a valid JSON object with a single key "questions", which is an array of 5 question objects with keys: "q", "a", "o", "exp".
+            
+            **CRITICAL RULE: The three incorrect options in the 'o' array MUST be unique from each other and MUST NOT be the same as the correct answer 'a'.**
             
             **FEEDBACK (exp) REQUIREMENTS:**
-            The 'exp' field must be excellent. It must state the rule, explain the answer, and for higher tiers, analyze the distractors.
+            The 'exp' field is critical. It must follow this structure:
+            1.  **Rule Citation:** State the rule or definition that explains the correct answer.
+            2.  **Explanation:** Clearly explain why the correct answer fits this rule.
+            3.  **Scaffolding:** - For Tiers 0-1 ('Murid Baru', 'Pencari Ilmu'), provide a concise English translation of the core rule or explanation.
+                - For Tier 2 ('Pakar Muda'), include key English terms in brackets, e.g., Imbuhan Awalan (prefix).
+                - For Tier 3 ('Mahaguru'), the explanation should be entirely in Malay.
             `;
 
             let creativityGuideline = `\n**CREATIVITY GUIDELINE:**
-            To ensure variety, you MUST create novel sentences and scenarios for your questions. Do not just copy examples from the CONTEXT. The core concept must come from the CONTEXT, but the presentation (the sentence, names, situation) must be new.`;
+            To ensure variety, you MUST create novel sentences and scenarios for your questions. Do not just copy examples from the CONTEXT. The core concept must come from the CONTEXT, but the presentation must be new. You must also test at least THREE different sub-topics or rules from the CONTEXT in this quiz.`;
 
             if (moduleKey === 'imbuhan') {
-                // Randomly choose between a rule-based quiz or a passage-based quiz
-                if (Math.random() < 0.75 || tierIndex < 2) { // More likely to be rule-based, especially for lower tiers
+                if (Math.random() < 0.75 || tierIndex < 2) { 
                     basePrompt += `
                     ---
                     CONTEXT: ${KB.imbuhan.content}
                     ---
                     ${creativityGuideline}
                     **MODULE-SPECIFIC INSTRUCTIONS (Imbuhan - Rules):**
-                    - **Question Focus:** Test the application of affix rules from the CONTEXT.
-                    - **Question Format:** For Tiers 0-2, use the "fill-in-the-blank" format. E.g., "Puan Salmah mula ____ (bunga)." Create one correct answer and three plausible distractors using other affixes or the root word. For Tier 3, you can use the "Which sentence is correct?" format to test more nuanced understanding.
+                    - **Question Format:** For Tiers 0-2, use the "fill-in-the-blank" format. E.g., "Puan Salmah mula ____ (bunga)." For Tier 3, use the "Which sentence is correct?" format to test more nuanced understanding.
                     `;
                 } else {
                     basePrompt += `
@@ -296,7 +315,6 @@
                     ---
                     **MODULE-SPECIFIC INSTRUCTIONS (Imbuhan - Application):**
                     - **Task:** Randomly select ONE passage from the CONTEXT. Create 5 "fill-in-the-blank" questions based on sentences from that passage that specifically test the use of 'imbuhan'.
-                    - **Question Generation:** The question 'q' must include the full sentence with a blank. The options 'a' and 'o' must be relevant to the affix being tested.
                     `;
                 }
             } else if (moduleKey === 'peribahasa') {
@@ -306,7 +324,6 @@
                 ---
                 ${creativityGuideline}
                 **MODULE-SPECIFIC INSTRUCTIONS (Peribahasa):**
-                - **Question Focus:** Test understanding of proverb meanings and their appropriate use.
                 - **Question Format:** For Tiers 0-1, ask for the direct meaning of a proverb. For Tiers 2-3, provide a novel scenario and ask for the most suitable proverb.
                 `;
             } else if (moduleKey === 'penjodohBilangan') {
@@ -316,7 +333,6 @@
                 ---
                 ${creativityGuideline}
                 **MODULE-SPECIFIC INSTRUCTIONS (Penjodoh Bilangan):**
-                - **Question Focus:** Test the correct use of numerical classifiers for different nouns.
                 - **Question Format:** Use the "fill-in-the-blank" format. E.g., "Ibu membeli tiga ____ (sikat) pisang." The options should be other valid classifiers that are incorrect for the specific noun.
                 `;
             }
@@ -329,7 +345,7 @@
             quizScreen.innerHTML = `<div class="text-center"><div class="loader"></div><h2 class="text-2xl font-baloo">Menjana Kuiz...</h2><p>Sila tunggu sebentar.</p></div>`;
             showView('quiz-screen');
             
-            const currentTier = masteryData[moduleKey].tier;
+            const currentTier = masteryData[moduleKey]?.tier ?? 0; // Default to tier 0 if undefined
             const prompt = constructPrompt(moduleKey, currentTier);
             
             const apiKey = "AIzaSyC9AKQcORYqndRZGhvTh-OqyMvE-Q7F2aI"; 
@@ -364,12 +380,18 @@
 
         function loadQuiz(questions, moduleKey) {
             const quizScreen = document.getElementById('quiz-screen');
-            const currentTier = masteryData[moduleKey].tier;
-            const tierName = moduleData[moduleKey].tiers[currentTier];
+            let title = "Kuiz";
+            if (moduleKey === 'daily') {
+                title = "Kuiz Perkataan Hari Ini";
+            } else {
+                const currentTier = masteryData[moduleKey].tier;
+                const tierName = moduleData[moduleKey].tiers[currentTier];
+                title = `${moduleData[moduleKey].name} - ${tierName}`;
+            }
             
             quizScreen.innerHTML = `
                 <button id="back-btn" class="mb-4 bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-full">&larr; Kembali</button>
-                <h2 id="quiz-title" class="text-3xl font-baloo mb-2 capitalize">${moduleData[moduleKey].name} - ${tierName}</h2>
+                <h2 id="quiz-title" class="text-3xl font-baloo mb-2 capitalize">${title}</h2>
                 <div id="quiz-content"></div>`;
             document.getElementById('back-btn').onclick = showDashboard;
             
@@ -415,6 +437,14 @@
             }
 
             function finishQuiz() {
+                if (moduleKey === 'daily') {
+                    let feedbackHTML = `<div class="text-center"><h2 class="text-2xl font-baloo mb-2">Kuiz Selesai!</h2><p class="text-xl">Skor anda: ${score} / ${questions.length}</p>`;
+                    feedbackHTML += `<button id="finish-btn" class="mt-6 bg-blue-500 text-white font-bold py-3 px-8 rounded-full">Kembali ke Dashboard</button></div>`;
+                    document.getElementById('quiz-content').innerHTML = feedbackHTML;
+                    document.getElementById('finish-btn').onclick = showDashboard;
+                    return;
+                }
+
                 const currentTier = masteryData[moduleKey].tier;
                 const pointsPerQuestion = moduleData[moduleKey].pointsPerTier[currentTier];
                 const totalPoints = score * pointsPerQuestion;
@@ -444,6 +474,68 @@
             }
             
             loadQuestion();
+        }
+
+        // --- (6) Daily Words Feature ---
+        async function handleDailyWords() {
+            const contentDiv = document.getElementById('daily-words-content');
+            const today = new Date().toISOString().split('T')[0];
+            const storedWords = JSON.parse(localStorage.getItem('dailyWords'));
+
+            if (storedWords && storedWords.date === today) {
+                console.log("Loading daily words from localStorage.");
+                renderDailyWords(storedWords.data);
+            } else {
+                console.log("Generating new daily words for", today);
+                contentDiv.innerHTML = `<div class="loader"></div><p class="text-center text-gray-500">Menjana perkataan baharu...</p>`;
+                try {
+                    const prompt = `Generate 5 interesting Malay words suitable for a primary school student. For each word, provide:
+                    1. 'word' (the Malay word)
+                    2. 'meaning_my' (the meaning in Malay)
+                    3. 'meaning_en' (the meaning in English)
+                    4. 'example_my' (an example sentence in Malay)
+                    5. 'example_en' (the English translation of the sentence)
+                    Then, create a 'quiz' array of 5 MCQ questions. Each question should test one of the 5 words in a "fill-in-the-blank" format.
+                    Return a single valid JSON object with two keys: "words" (an array of 5 word objects) and "quiz" (an array of 5 question objects).`;
+
+                    const apiKey = "AIzaSyC9AKQcORYqndRZGhvTh-OqyMvE-Q7F2aI";
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+                    const payload = {
+                        contents: [{ role: "user", parts: [{ text: prompt }] }],
+                        generationConfig: { responseMimeType: "application/json" }
+                    };
+
+                    const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                    if (!response.ok) throw new Error('API request failed');
+                    const result = await response.json();
+                    const data = JSON.parse(result.candidates[0].content.parts[0].text);
+
+                    localStorage.setItem('dailyWords', JSON.stringify({ date: today, data: data }));
+                    renderDailyWords(data);
+                } catch (error) {
+                    console.error("Failed to generate daily words:", error);
+                    contentDiv.innerHTML = `<p class="text-center text-red-500">Gagal memuatkan perkataan hari ini. Sila cuba lagi nanti.</p>`;
+                }
+            }
+        }
+
+        function renderDailyWords(data) {
+            const contentDiv = document.getElementById('daily-words-content');
+            let html = '<div class="space-y-4">';
+            data.words.forEach(item => {
+                html += `
+                    <div class="word-card bg-gray-50 p-4 rounded-lg">
+                        <h3 class="font-baloo text-lg text-blue-700">${item.word}</h3>
+                        <p class="text-sm text-gray-600"><strong>Maksud:</strong> ${item.meaning_my} (${item.meaning_en})</p>
+                        <p class="text-sm text-gray-600 mt-1"><em>${item.example_my}</em></p>
+                        <p class="text-sm text-gray-500"><em>(${item.example_en})</em></p>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            html += `<button id="daily-quiz-btn" class="mt-4 w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md transition">Cuba Kuiz Perkataan!</button>`;
+            contentDiv.innerHTML = html;
+            document.getElementById('daily-quiz-btn').onclick = () => loadQuiz(data.quiz, 'daily');
         }
         
         // --- Initialize App ---
