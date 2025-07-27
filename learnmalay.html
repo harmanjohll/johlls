@@ -46,19 +46,11 @@
             <!-- DASHBOARD SCREEN -->
             <div id="dashboard-screen" class="hidden">
                  <div id="learner-dashboard">
-                    <!-- **NEW**: Error banner -->
-                    <div id="error-banner" class="hidden mb-6 bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-md" role="alert">
-                        <p class="font-bold">Ralat Rangkaian</p>
-                        <p>Gagal memuat turun bahan pembelajaran. Sila semak sambungan internet anda dan cuba lagi.</p>
-                    </div>
-                    <!-- 5 Words of the Day section -->
                     <div id="daily-words-section" class="mb-8 bg-white p-6 rounded-xl shadow-md">
                         <h2 class="text-2xl font-baloo text-gray-800 mb-4">5 Perkataan Hari Ini</h2>
-                        <div id="daily-words-content">
-                            <div class="loader"></div>
-                        </div>
+                        <div id="daily-words-content"><div class="loader"></div></div>
                     </div>
-                     <div id="module-selection" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                     <div id="module-selection" class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                          <!-- Modules will be dynamically generated here -->
                      </div>
                  </div>
@@ -70,7 +62,7 @@
     </div>
 
     <script type="module">
-        // Version 2.8 (with fix)
+        // Version 2.12
 
         // ─── (1) Setup ──────────────────────────────────────────────────────────────────
         import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
@@ -79,10 +71,30 @@
         const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
         const KB = {
-            imbuhan: { url: 'https://harmanjohll.github.io/learnmalay/Imbuhan_KB.md', content: '' },
-            peribahasa: { url: 'https://harmanjohll.github.io/learnmalay/Peribahasa_KB.md', content: '' },
-            tatabahasaPassages: { url: 'https://harmanjohll.github.io/learnmalay/QuestionsBank_KB.md', content: '' },
-            penjodohBilangan: { url: '', content: '' } 
+            imbuhan: { content: `
+# Imbuhan Awalan (Prefixes)
+- **beR-**: Menunjukkan perbuatan atau keadaan. Contoh: berjalan, berlari, berenang.
+- **meN-**: Membentuk kata kerja aktif. Boleh berubah menjadi me-, mem-, men-, meng-, menge-. Contoh: membaca, melukis, mendengar.
+`},
+            peribahasa: { content: `
+# Kumpulan Peribahasa
+## Bagai aur dengan tebing
+* **Maksud:** Hubungan yang sangat rapat dan saling membantu.
+* **Contoh Ayat:** Penduduk kampung itu hidup bersatu-padu bagai aur dengan tebing.
+`},
+            tatabahasaPassages: { content: `
+# Passage 1
+Haikal (Q1)_____ basikalnya dengan laju. Dia mahu cepat sampai ke sekolah. Tiba-tiba, dia (Q2)_____ sebuah dompet di tepi jalan. 
+Q1: (A) menunggang (B) ditunggang (C) penunggang (D) tunggangan
+Q2: (A) terjumpa (B) menjumpai (C) dijumpai (D) penemuan
+Answer Key: 1-A, 2-A
+`},
+            penjodohBilangan: { content: `
+# Penjodoh Bilangan (Numerical Classifiers)
+## Benda-benda yang nipis dan pipih
+* **helai:** digunakan untuk benda-benda yang nipis dan lebar seperti daun, kertas, baju.
+    * **Contoh:** sehelai kertas.
+` }
         };
 
         // --- App State ---
@@ -93,12 +105,12 @@
         const moduleData = {
             imbuhan: { name: "Imbuhan", tiers: ["Murid Baru", "Pencari Ilmu", "Pakar Muda", "Mahaguru"], pointsPerTier: [5, 10, 15, 20] },
             peribahasa: { name: "Peribahasa", tiers: ["Murid Baru", "Pencari Ilmu", "Pakar Muda", "Mahaguru"], pointsPerTier: [5, 10, 15, 20] },
-            penjodohBilangan: { name: "Penjodoh Bilangan", tiers: ["Murid Baru", "Pencari Ilmu", "Pakar Muda", "Mahaguru"], pointsPerTier: [10, 20, 30, 40] }
+            penjodohBilangan: { name: "Penjodoh Bilangan", tiers: ["Murid Baru", "Pencari Ilmu", "Pakar Muda", "Mahaguru"], pointsPerTier: [10, 20, 30, 40] },
+            kosaKata: { name: "Kosa Kata (Vocabulary)", tiers: ["Murid Baru", "Pencari Ilmu", "Pakar Muda", "Mahaguru"], pointsPerTier: [10, 20, 30, 40] }
         };
 
         // ─── (2) Initialization ─────────────────────────────────────────────────────────
         async function main() {
-            await fetchAllKnowledgeBases();
             await checkForSavedSession();
             document.getElementById('register-btn').addEventListener('click', handleRegister);
             document.getElementById('login-btn').addEventListener('click', handleLogin);
@@ -114,24 +126,6 @@
             }
         }
 
-        async function fetchAllKnowledgeBases() {
-            try {
-                const promises = Object.keys(KB).map(async (key) => {
-                    if (!KB[key].url) return;
-                    // **FIXED**: Added fetch options to make the request more robust.
-                    const response = await fetch(KB[key].url, { mode: 'cors', cache: 'no-cache' });
-                    if (!response.ok) throw new Error(`Failed to fetch ${key}`);
-                    KB[key].content = await response.text();
-                    console.log(`✅ ${key} KB loaded successfully.`);
-                });
-                await Promise.all(promises);
-            } catch (error) {
-                console.error('❌ KB load failed:', error);
-                // **FIXED**: Show a user-friendly error banner on the dashboard.
-                document.getElementById('error-banner').classList.remove('hidden');
-            }
-        }
-
         // ─── (3) Profile & Data Management ───────────────────────────────────────────
         async function handleRegister() {
             const nameInput = document.getElementById('username-input');
@@ -142,12 +136,13 @@
             loginError.textContent = 'Mendaftar...';
 
             let { data: existing } = await supabase.from('profiles').select('id').eq('username', name);
-            if (existing.length > 0) return loginError.textContent = 'Nama pengguna ini telah wujud.';
+            if (existing && existing.length > 0) return loginError.textContent = 'Nama pengguna ini telah wujud.';
 
             const initialMasteryData = {
                 imbuhan: { score: 0, tier: 0 },
                 peribahasa: { score: 0, tier: 0 },
-                penjodohBilangan: { score: 0, tier: 0 }
+                penjodohBilangan: { score: 0, tier: 0 },
+                kosaKata: { score: 0, tier: 0 }
             };
 
             const { data: newProfile, error: insErr } = await supabase
@@ -299,7 +294,7 @@
             To ensure variety, you MUST create novel sentences and scenarios for your questions. Do not just copy examples from the CONTEXT. The core concept must come from the CONTEXT, but the presentation must be new. You must also test at least THREE different sub-topics or rules from the CONTEXT in this quiz.`;
 
             if (moduleKey === 'imbuhan') {
-                if (Math.random() < 0.75 || tierIndex < 2) { 
+                 if (Math.random() < 0.75 || tierIndex < 2) { 
                     basePrompt += `
                     ---
                     CONTEXT: ${KB.imbuhan.content}
@@ -318,7 +313,7 @@
                     `;
                 }
             } else if (moduleKey === 'peribahasa') {
-                basePrompt += `
+                 basePrompt += `
                 ---
                 CONTEXT: ${KB.peribahasa.content}
                 ---
@@ -327,13 +322,28 @@
                 - **Question Format:** For Tiers 0-1, ask for the direct meaning of a proverb. For Tiers 2-3, provide a novel scenario and ask for the most suitable proverb.
                 `;
             } else if (moduleKey === 'penjodohBilangan') {
-                basePrompt += `
+                 basePrompt += `
                 ---
-                CONTEXT: Your own general knowledge of Malay 'Penjodoh Bilangan' (numerical classifiers) suitable for Singapore primary school students.
+                CONTEXT: ${KB.penjodohBilangan.content}
                 ---
                 ${creativityGuideline}
                 **MODULE-SPECIFIC INSTRUCTIONS (Penjodoh Bilangan):**
-                - **Question Format:** Use the "fill-in-the-blank" format. E.g., "Ibu membeli tiga ____ (sikat) pisang." The options should be other valid classifiers that are incorrect for the specific noun.
+                - **Question Format:** Use the "fill-in-the-blank" format. E.g., "Ibu membeli tiga ____ (sikat) pisang." The options should be other valid classifiers from the CONTEXT that are incorrect for the specific noun.
+                `;
+            } else if (moduleKey === 'kosaKata') {
+                basePrompt = `You are a Malay Language Vocabulary Coach and Learning Engine. Your purpose is to support a primary-level learner (aged 11–12) whose native language is English. Their current proficiency is '${tierName}'.
+                
+                ## Your Task:
+                Generate a customised vocabulary quiz with exactly 5 questions.
+                1. **Be adaptive**: For '${tierName}', focus on ${tierIndex < 2 ? 'basic recognition and simple meanings.' : 'application in full sentences and contextual meaning.'}
+                2. **Be themed**: Randomly select ONE theme from the following list: Feelings and Emotions, School and Learning, Food and Drink, Family, Daily Routines, Places, Nature, Occupations. All 5 questions must relate to this single theme.
+                3. **Vary Formats**: 
+                   - For Tiers 0-1, create "What is the meaning of [Malay Word]?" questions. The correct answer 'a' must be the English meaning. The incorrect options 'o' must be other plausible but incorrect English meanings.
+                   - For Tiers 2-3, create "fill-in-the-blank" questions where the user must choose the correct Malay word to complete a sentence.
+                4. **Include English support**: Provide brief English explanations or translations for each question.
+                5. **Provide an Answer Key**: The 'exp' field for each question must include a short explanation in both Malay and English.
+                
+                Return a single valid JSON object with a single key "questions", which is an array of 5 question objects with keys: "q", "a", "o", "exp". The 'o' array must contain 3 unique incorrect options.
                 `;
             }
             
@@ -345,7 +355,7 @@
             quizScreen.innerHTML = `<div class="text-center"><div class="loader"></div><h2 class="text-2xl font-baloo">Menjana Kuiz...</h2><p>Sila tunggu sebentar.</p></div>`;
             showView('quiz-screen');
             
-            const currentTier = masteryData[moduleKey]?.tier ?? 0; // Default to tier 0 if undefined
+            const currentTier = masteryData[moduleKey]?.tier ?? 0;
             const prompt = constructPrompt(moduleKey, currentTier);
             
             const apiKey = "AIzaSyC9AKQcORYqndRZGhvTh-OqyMvE-Q7F2aI"; 
@@ -366,7 +376,13 @@
                 if (result.candidates && result.candidates[0].content && result.candidates[0].content.parts[0].text) {
                     const generatedData = JSON.parse(result.candidates[0].content.parts[0].text);
                     if (generatedData.questions && generatedData.questions.length > 0) {
-                        loadQuiz(generatedData.questions, moduleKey);
+                        // **FIXED**: Filter out any malformed questions from the API response.
+                        const validQuestions = generatedData.questions.filter(q => q && q.a && Array.isArray(q.o));
+                        if (validQuestions.length > 0) {
+                           loadQuiz(validQuestions, moduleKey);
+                        } else {
+                           throw new Error("API returned no valid questions.");
+                        }
                     } else { throw new Error("API returned no questions."); }
                 } else { 
                     console.error("API Response Error:", result);
@@ -381,11 +397,12 @@
         function loadQuiz(questions, moduleKey) {
             const quizScreen = document.getElementById('quiz-screen');
             let title = "Kuiz";
+
             if (moduleKey === 'daily') {
                 title = "Kuiz Perkataan Hari Ini";
             } else {
-                const currentTier = masteryData[moduleKey].tier;
-                const tierName = moduleData[moduleKey].tiers[currentTier];
+                const currentTier = masteryData[moduleKey]?.tier ?? 0;
+                const tierName = moduleData[moduleKey]?.tiers[currentTier] ?? "Murid Baru";
                 title = `${moduleData[moduleKey].name} - ${tierName}`;
             }
             
@@ -404,7 +421,8 @@
                     return;
                 }
                 const q = questions[currentQuestionIndex];
-                const options = [...q.o, q.a].sort(() => Math.random() - 0.5);
+                // **FIXED**: Ensure q.o is always an array to prevent the 'not iterable' error.
+                const options = [...(Array.isArray(q.o) ? q.o : []), q.a].sort(() => Math.random() - 0.5);
                 document.getElementById('quiz-content').innerHTML = `
                     <p class="text-lg mb-4" style="white-space: pre-wrap;">(${currentQuestionIndex + 1}/${questions.length}) ${q.q}</p>
                     <div id="options-container" class="space-y-2">
@@ -479,14 +497,14 @@
         // --- (6) Daily Words Feature ---
         async function handleDailyWords() {
             const contentDiv = document.getElementById('daily-words-content');
-            const today = new Date().toISOString().split('T')[0];
+            const today = new Date().toLocaleDateString('en-CA');
             const storedWords = JSON.parse(localStorage.getItem('dailyWords'));
 
             if (storedWords && storedWords.date === today) {
-                console.log("Loading daily words from localStorage.");
+                console.log("Loading daily words from localStorage for date:", today);
                 renderDailyWords(storedWords.data);
             } else {
-                console.log("Generating new daily words for", today);
+                console.log("Generating new daily words for date:", today);
                 contentDiv.innerHTML = `<div class="loader"></div><p class="text-center text-gray-500">Menjana perkataan baharu...</p>`;
                 try {
                     const prompt = `Generate 5 interesting Malay words suitable for a primary school student. For each word, provide:
@@ -521,6 +539,11 @@
 
         function renderDailyWords(data) {
             const contentDiv = document.getElementById('daily-words-content');
+            // **FIXED**: Ensure data and data.words exist before trying to render.
+            if (!data || !data.words) {
+                contentDiv.innerHTML = `<p class="text-center text-red-500">Ralat memaparkan perkataan harian.</p>`;
+                return;
+            }
             let html = '<div class="space-y-4">';
             data.words.forEach(item => {
                 html += `
@@ -535,7 +558,14 @@
             html += '</div>';
             html += `<button id="daily-quiz-btn" class="mt-4 w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md transition">Cuba Kuiz Perkataan!</button>`;
             contentDiv.innerHTML = html;
-            document.getElementById('daily-quiz-btn').onclick = () => loadQuiz(data.quiz, 'daily');
+            document.getElementById('daily-quiz-btn').onclick = () => {
+                // **FIXED**: Ensure quiz data is valid before starting the quiz.
+                if (data.quiz && Array.isArray(data.quiz)) {
+                    loadQuiz(data.quiz, 'daily');
+                } else {
+                    alert('Maaf, kuiz harian tidak tersedia pada masa ini.');
+                }
+            };
         }
         
         // --- Initialize App ---
