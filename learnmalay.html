@@ -62,7 +62,7 @@
     </div>
 
     <script type="module">
-        // Version 2.12
+        // Version 2.13
 
         // ─── (1) Setup ──────────────────────────────────────────────────────────────────
         import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
@@ -129,7 +129,8 @@ Answer Key: 1-A, 2-A
         // ─── (3) Profile & Data Management ───────────────────────────────────────────
         async function handleRegister() {
             const nameInput = document.getElementById('username-input');
-            const name = nameInput.value.trim();
+            // **FIXED**: Convert username to lowercase to make it case-insensitive.
+            const name = nameInput.value.trim().toLowerCase();
             if (!name) return;
             
             const loginError = document.getElementById('login-error');
@@ -161,7 +162,8 @@ Answer Key: 1-A, 2-A
         
         async function handleLogin() {
             const nameInput = document.getElementById('username-input');
-            const name = nameInput.value.trim();
+            // **FIXED**: Convert username to lowercase to make it case-insensitive.
+            const name = nameInput.value.trim().toLowerCase();
             if (!name) return;
             await performLogin(name);
         }
@@ -269,7 +271,8 @@ Answer Key: 1-A, 2-A
 
         // --- (5) Quiz Generation & Flow ---
         
-        function constructPrompt(moduleKey, tierIndex) {
+        // **MODIFIED**: Added totalScore as a parameter for kosaKata.
+        function constructPrompt(moduleKey, tierIndex, totalScore = 0) {
             const topic = moduleData[moduleKey].name;
             const tierName = moduleData[moduleKey].tiers[tierIndex];
 
@@ -331,15 +334,20 @@ Answer Key: 1-A, 2-A
                 - **Question Format:** Use the "fill-in-the-blank" format. E.g., "Ibu membeli tiga ____ (sikat) pisang." The options should be other valid classifiers from the CONTEXT that are incorrect for the specific noun.
                 `;
             } else if (moduleKey === 'kosaKata') {
-                basePrompt = `You are a Malay Language Vocabulary Coach and Learning Engine. Your purpose is to support a primary-level learner (aged 11–12) whose native language is English. Their current proficiency is '${tierName}'.
+                // **MODIFIED**: Determines proficiency based on total score.
+                let proficiencyLevel = 'Beginner';
+                if (totalScore > 600) proficiencyLevel = 'Advanced';
+                else if (totalScore > 200) proficiencyLevel = 'Intermediate';
+
+                basePrompt = `You are a Malay Language Vocabulary Coach and Learning Engine. Your purpose is to support a primary-level learner (aged 11–12) whose native language is English. The learner's overall proficiency is estimated to be '${proficiencyLevel}'.
                 
                 ## Your Task:
                 Generate a customised vocabulary quiz with exactly 5 questions.
-                1. **Be adaptive**: For '${tierName}', focus on ${tierIndex < 2 ? 'basic recognition and simple meanings.' : 'application in full sentences and contextual meaning.'}
+                1. **Be adaptive**: Calibrate the vocabulary difficulty to the learner’s proficiency. For a '${proficiencyLevel}' learner, focus on ${proficiencyLevel === 'Beginner' ? 'basic recognition and simple meanings.' : 'application in full sentences and contextual meaning.'}
                 2. **Be themed**: Randomly select ONE theme from the following list: Feelings and Emotions, School and Learning, Food and Drink, Family, Daily Routines, Places, Nature, Occupations. All 5 questions must relate to this single theme.
                 3. **Vary Formats**: 
-                   - For Tiers 0-1, create "What is the meaning of [Malay Word]?" questions. The correct answer 'a' must be the English meaning. The incorrect options 'o' must be other plausible but incorrect English meanings.
-                   - For Tiers 2-3, create "fill-in-the-blank" questions where the user must choose the correct Malay word to complete a sentence.
+                   - For 'Beginner' level, create "What is the meaning of [Malay Word]?" questions. The correct answer 'a' must be the English meaning. The incorrect options 'o' must be other plausible but incorrect English meanings.
+                   - For 'Intermediate' and 'Advanced' levels, create "fill-in-the-blank" questions where the user must choose the correct Malay word to complete a sentence.
                 4. **Include English support**: Provide brief English explanations or translations for each question.
                 5. **Provide an Answer Key**: The 'exp' field for each question must include a short explanation in both Malay and English.
                 
@@ -356,7 +364,13 @@ Answer Key: 1-A, 2-A
             showView('quiz-screen');
             
             const currentTier = masteryData[moduleKey]?.tier ?? 0;
-            const prompt = constructPrompt(moduleKey, currentTier);
+            
+            let totalScore = 0;
+            if (moduleKey === 'kosaKata') {
+                totalScore = Object.values(masteryData).reduce((sum, module) => sum + module.score, 0);
+            }
+
+            const prompt = constructPrompt(moduleKey, currentTier, totalScore);
             
             const apiKey = "AIzaSyC9AKQcORYqndRZGhvTh-OqyMvE-Q7F2aI"; 
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
@@ -376,7 +390,6 @@ Answer Key: 1-A, 2-A
                 if (result.candidates && result.candidates[0].content && result.candidates[0].content.parts[0].text) {
                     const generatedData = JSON.parse(result.candidates[0].content.parts[0].text);
                     if (generatedData.questions && generatedData.questions.length > 0) {
-                        // **FIXED**: Filter out any malformed questions from the API response.
                         const validQuestions = generatedData.questions.filter(q => q && q.a && Array.isArray(q.o));
                         if (validQuestions.length > 0) {
                            loadQuiz(validQuestions, moduleKey);
@@ -421,7 +434,6 @@ Answer Key: 1-A, 2-A
                     return;
                 }
                 const q = questions[currentQuestionIndex];
-                // **FIXED**: Ensure q.o is always an array to prevent the 'not iterable' error.
                 const options = [...(Array.isArray(q.o) ? q.o : []), q.a].sort(() => Math.random() - 0.5);
                 document.getElementById('quiz-content').innerHTML = `
                     <p class="text-lg mb-4" style="white-space: pre-wrap;">(${currentQuestionIndex + 1}/${questions.length}) ${q.q}</p>
@@ -507,7 +519,7 @@ Answer Key: 1-A, 2-A
                 console.log("Generating new daily words for date:", today);
                 contentDiv.innerHTML = `<div class="loader"></div><p class="text-center text-gray-500">Menjana perkataan baharu...</p>`;
                 try {
-                    const prompt = `Generate 5 interesting Malay words suitable for a primary school student. For each word, provide:
+                    const prompt = `For the date ${today}, generate 5 interesting Malay words suitable for a primary school student. The words must be from different categories (e.g., a noun, a verb, an adjective). Avoid overly common words. For each word, provide:
                     1. 'word' (the Malay word)
                     2. 'meaning_my' (the meaning in Malay)
                     3. 'meaning_en' (the meaning in English)
@@ -539,7 +551,6 @@ Answer Key: 1-A, 2-A
 
         function renderDailyWords(data) {
             const contentDiv = document.getElementById('daily-words-content');
-            // **FIXED**: Ensure data and data.words exist before trying to render.
             if (!data || !data.words) {
                 contentDiv.innerHTML = `<p class="text-center text-red-500">Ralat memaparkan perkataan harian.</p>`;
                 return;
@@ -559,7 +570,6 @@ Answer Key: 1-A, 2-A
             html += `<button id="daily-quiz-btn" class="mt-4 w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md transition">Cuba Kuiz Perkataan!</button>`;
             contentDiv.innerHTML = html;
             document.getElementById('daily-quiz-btn').onclick = () => {
-                // **FIXED**: Ensure quiz data is valid before starting the quiz.
                 if (data.quiz && Array.isArray(data.quiz)) {
                     loadQuiz(data.quiz, 'daily');
                 } else {
