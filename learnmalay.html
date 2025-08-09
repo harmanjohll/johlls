@@ -62,7 +62,7 @@
     </div>
 
     <script type="module">
-        // Version 2.13
+        // Version 2.15
 
         // ─── (1) Setup ──────────────────────────────────────────────────────────────────
         import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
@@ -111,10 +111,10 @@ Answer Key: 1-A, 2-A
 
         // ─── (2) Initialization ─────────────────────────────────────────────────────────
         async function main() {
-            await checkForSavedSession();
             document.getElementById('register-btn').addEventListener('click', handleRegister);
             document.getElementById('login-btn').addEventListener('click', handleLogin);
             document.getElementById('logout-btn').addEventListener('click', logout);
+            await checkForSavedSession();
         }
 
         async function checkForSavedSession() {
@@ -129,15 +129,22 @@ Answer Key: 1-A, 2-A
         // ─── (3) Profile & Data Management ───────────────────────────────────────────
         async function handleRegister() {
             const nameInput = document.getElementById('username-input');
-            // **FIXED**: Convert username to lowercase to make it case-insensitive.
-            const name = nameInput.value.trim().toLowerCase();
+            const name = nameInput.value.trim();
             if (!name) return;
             
             const loginError = document.getElementById('login-error');
             loginError.textContent = 'Mendaftar...';
 
-            let { data: existing } = await supabase.from('profiles').select('id').eq('username', name);
-            if (existing && existing.length > 0) return loginError.textContent = 'Nama pengguna ini telah wujud.';
+            let { data: existing, error: checkError } = await supabase.from('profiles').select('id').ilike('username', name);
+            if (checkError) {
+                loginError.textContent = 'Error checking username.';
+                console.error(checkError);
+                return;
+            }
+            if (existing && existing.length > 0) {
+                loginError.textContent = 'Nama pengguna ini telah wujud.';
+                return;
+            }
 
             const initialMasteryData = {
                 imbuhan: { score: 0, tier: 0 },
@@ -162,8 +169,7 @@ Answer Key: 1-A, 2-A
         
         async function handleLogin() {
             const nameInput = document.getElementById('username-input');
-            // **FIXED**: Convert username to lowercase to make it case-insensitive.
-            const name = nameInput.value.trim().toLowerCase();
+            const name = nameInput.value.trim();
             if (!name) return;
             await performLogin(name);
         }
@@ -172,19 +178,30 @@ Answer Key: 1-A, 2-A
             const loginError = document.getElementById('login-error');
             loginError.textContent = 'Log masuk...';
 
-            let { data: profile, error: profileErr } = await supabase
+            // **FIXED**: Changed query from .single() to a general query to robustly handle potential duplicates.
+            let { data: profiles, error: profileErr } = await supabase
                 .from('profiles')
                 .select('*')
-                .eq('username', username)
-                .single();
+                .ilike('username', username); // ilike is case-insensitive
             
-            if (profileErr || !profile) {
+            if (profileErr) {
+                loginError.textContent = 'Ralat: ' + profileErr.message;
+                return;
+            }
+
+            if (!profiles || profiles.length === 0) {
                 loginError.textContent = 'Nama pengguna tidak dijumpai.';
                 localStorage.removeItem('malayAdventureUser');
                 showView('login-screen');
                 return;
             }
-            
+
+            if (profiles.length > 1) {
+                loginError.textContent = 'Terdapat beberapa akaun dengan nama ini. Sila hubungi sokongan.';
+                return;
+            }
+
+            const profile = profiles[0];
             currentProfile = profile;
             
             let needsSave = false;
@@ -202,7 +219,7 @@ Answer Key: 1-A, 2-A
                 await saveMasteryData(); 
             }
             
-            localStorage.setItem('malayAdventureUser', username);
+            localStorage.setItem('malayAdventureUser', profile.username);
             loginError.textContent = '';
             showDashboard();
         }
@@ -271,7 +288,6 @@ Answer Key: 1-A, 2-A
 
         // --- (5) Quiz Generation & Flow ---
         
-        // **MODIFIED**: Added totalScore as a parameter for kosaKata.
         function constructPrompt(moduleKey, tierIndex, totalScore = 0) {
             const topic = moduleData[moduleKey].name;
             const tierName = moduleData[moduleKey].tiers[tierIndex];
@@ -334,7 +350,6 @@ Answer Key: 1-A, 2-A
                 - **Question Format:** Use the "fill-in-the-blank" format. E.g., "Ibu membeli tiga ____ (sikat) pisang." The options should be other valid classifiers from the CONTEXT that are incorrect for the specific noun.
                 `;
             } else if (moduleKey === 'kosaKata') {
-                // **MODIFIED**: Determines proficiency based on total score.
                 let proficiencyLevel = 'Beginner';
                 if (totalScore > 600) proficiencyLevel = 'Advanced';
                 else if (totalScore > 200) proficiencyLevel = 'Intermediate';
