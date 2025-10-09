@@ -46,13 +46,13 @@
             <!-- DASHBOARD SCREEN -->
             <div id="dashboard-screen" class="hidden">
                  <div id="learner-dashboard">
-                    <div id="daily-words-section" class="mb-8 bg-white p-6 rounded-xl shadow-md">
-                        <h2 class="text-2xl font-baloo text-gray-800 mb-4">5 Perkataan Hari Ini</h2>
-                        <div id="daily-words-content"><div class="loader"></div></div>
-                    </div>
-                     <div id="module-selection" class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                         <!-- Modules will be dynamically generated here -->
+                     <div id="daily-words-section" class="mb-8 bg-white p-6 rounded-xl shadow-md">
+                         <h2 class="text-2xl font-baloo text-gray-800 mb-4">5 Perkataan Hari Ini</h2>
+                         <div id="daily-words-content"><div class="loader"></div></div>
                      </div>
+                      <div id="module-selection" class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                          <!-- Modules will be dynamically generated here -->
+                      </div>
                  </div>
             </div>
 
@@ -62,7 +62,7 @@
     </div>
 
     <script type="module">
-        // Version 2.15
+        // Version 2.16 - Improved question variety
 
         // ─── (1) Setup ──────────────────────────────────────────────────────────────────
         import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
@@ -81,6 +81,9 @@
 ## Bagai aur dengan tebing
 * **Maksud:** Hubungan yang sangat rapat dan saling membantu.
 * **Contoh Ayat:** Penduduk kampung itu hidup bersatu-padu bagai aur dengan tebing.
+## Seperti katak di bawah tempurung
+* **Maksud:** Orang yang pengetahuannya terhad.
+* **Contoh Ayat:** Jangan jadi seperti katak di bawah tempurung, banyakkanlah membaca buku.
 `},
             tatabahasaPassages: { content: `
 # Passage 1
@@ -94,6 +97,8 @@ Answer Key: 1-A, 2-A
 ## Benda-benda yang nipis dan pipih
 * **helai:** digunakan untuk benda-benda yang nipis dan lebar seperti daun, kertas, baju.
     * **Contoh:** sehelai kertas.
+* **keping:** digunakan untuk benda-benda yang nipis dan pipih seperti roti, papan, gambar.
+    * **Contoh:** sekeping roti.
 ` }
         };
 
@@ -178,11 +183,10 @@ Answer Key: 1-A, 2-A
             const loginError = document.getElementById('login-error');
             loginError.textContent = 'Log masuk...';
 
-            // **FIXED**: Changed query from .single() to a general query to robustly handle potential duplicates.
             let { data: profiles, error: profileErr } = await supabase
                 .from('profiles')
                 .select('*')
-                .ilike('username', username); // ilike is case-insensitive
+                .ilike('username', username);
             
             if (profileErr) {
                 loginError.textContent = 'Ralat: ' + profileErr.message;
@@ -292,10 +296,18 @@ Answer Key: 1-A, 2-A
             const topic = moduleData[moduleKey].name;
             const tierName = moduleData[moduleKey].tiers[tierIndex];
 
+            // IMPROVED: Added a strong mandate for variety in questions and answers.
             let basePrompt = `You are Cikgu Cemerlang, a highly skilled Malay Language educator for Primary School students in Singapore. Your persona is defined by pedagogical expertise, a supportive tone, and adherence to the provided context.
             
             **TASK:**
             Generate a quiz of 5 unique multiple-choice questions about '${topic}' for a student at the '${tierName}' level.
+
+            **VARIETY MANDATE (CRITICAL):**
+            Your highest priority is to ensure maximum variety.
+            1.  **Unique Concepts:** Each of the 5 questions MUST test a different specific rule, proverb, classifier, or vocabulary word from the provided CONTEXT. Do not ask about the same item twice.
+            2.  **Unique Answers:** The correct answer ('a') for each of the 5 questions MUST be unique. For example, if 'berlari' is the answer to Q1, it cannot be the answer for Q2, Q3, Q4, or Q5.
+            3.  **Novel Scenarios:** Do not simply copy or slightly rephrase examples from the CONTEXT. You must create entirely new sentences and situations for each question.
+
             The response must be a valid JSON object with a single key "questions", which is an array of 5 question objects with keys: "q", "a", "o", "exp".
             
             **CRITICAL RULE: The three incorrect options in the 'o' array MUST be unique from each other and MUST NOT be the same as the correct answer 'a'.**
@@ -309,46 +321,40 @@ Answer Key: 1-A, 2-A
                 - For Tier 3 ('Mahaguru'), the explanation should be entirely in Malay.
             `;
 
-            let creativityGuideline = `\n**CREATIVITY GUIDELINE:**
-            To ensure variety, you MUST create novel sentences and scenarios for your questions. Do not just copy examples from the CONTEXT. The core concept must come from the CONTEXT, but the presentation must be new. You must also test at least THREE different sub-topics or rules from the CONTEXT in this quiz.`;
-
             if (moduleKey === 'imbuhan') {
                  if (Math.random() < 0.75 || tierIndex < 2) { 
-                    basePrompt += `
-                    ---
-                    CONTEXT: ${KB.imbuhan.content}
-                    ---
-                    ${creativityGuideline}
-                    **MODULE-SPECIFIC INSTRUCTIONS (Imbuhan - Rules):**
-                    - **Question Format:** For Tiers 0-2, use the "fill-in-the-blank" format. E.g., "Puan Salmah mula ____ (bunga)." For Tier 3, use the "Which sentence is correct?" format to test more nuanced understanding.
-                    `;
-                } else {
-                    basePrompt += `
-                    ---
-                    CONTEXT: ${KB.tatabahasaPassages.content}
-                    ---
-                    **MODULE-SPECIFIC INSTRUCTIONS (Imbuhan - Application):**
-                    - **Task:** Randomly select ONE passage from the CONTEXT. Create 5 "fill-in-the-blank" questions based on sentences from that passage that specifically test the use of 'imbuhan'.
-                    `;
-                }
+                     basePrompt += `
+                     ---
+                     CONTEXT: ${KB.imbuhan.content}
+                     ---
+                     **MODULE-SPECIFIC INSTRUCTIONS (Imbuhan - Rules):**
+                     - **Question Format:** For Tiers 0-2, use the "fill-in-the-blank" format. E.g., "Puan Salmah mula ____ (bunga)." For Tier 3, use the "Which sentence is correct?" format to test more nuanced understanding.
+                     `;
+                 } else {
+                     basePrompt += `
+                     ---
+                     CONTEXT: ${KB.tatabahasaPassages.content}
+                     ---
+                     **MODULE-SPECIFIC INSTRUCTIONS (Imbuhan - Application):**
+                     - **Task:** Randomly select ONE passage from the CONTEXT. Create 5 "fill-in-the-blank" questions based on sentences from that passage that specifically test the use of 'imbuhan'.
+                     `;
+                 }
             } else if (moduleKey === 'peribahasa') {
                  basePrompt += `
-                ---
-                CONTEXT: ${KB.peribahasa.content}
-                ---
-                ${creativityGuideline}
-                **MODULE-SPECIFIC INSTRUCTIONS (Peribahasa):**
-                - **Question Format:** For Tiers 0-1, ask for the direct meaning of a proverb. For Tiers 2-3, provide a novel scenario and ask for the most suitable proverb.
-                `;
+                 ---
+                 CONTEXT: ${KB.peribahasa.content}
+                 ---
+                 **MODULE-SPECIFIC INSTRUCTIONS (Peribahasa):**
+                 - **Question Format:** For Tiers 0-1, ask for the direct meaning of a proverb. For Tiers 2-3, provide a novel scenario and ask for the most suitable proverb.
+                 `;
             } else if (moduleKey === 'penjodohBilangan') {
                  basePrompt += `
-                ---
-                CONTEXT: ${KB.penjodohBilangan.content}
-                ---
-                ${creativityGuideline}
-                **MODULE-SPECIFIC INSTRUCTIONS (Penjodoh Bilangan):**
-                - **Question Format:** Use the "fill-in-the-blank" format. E.g., "Ibu membeli tiga ____ (sikat) pisang." The options should be other valid classifiers from the CONTEXT that are incorrect for the specific noun.
-                `;
+                 ---
+                 CONTEXT: ${KB.penjodohBilangan.content}
+                 ---
+                 **MODULE-SPECIFIC INSTRUCTIONS (Penjodoh Bilangan):**
+                 - **Question Format:** Use the "fill-in-the-blank" format. E.g., "Ibu membeli tiga ____ (sikat) pisang." The options should be other valid classifiers from the CONTEXT that are incorrect for the specific noun.
+                 `;
             } else if (moduleKey === 'kosaKata') {
                 let proficiencyLevel = 'Beginner';
                 if (totalScore > 600) proficiencyLevel = 'Advanced';
@@ -360,6 +366,10 @@ Answer Key: 1-A, 2-A
                 Generate a customised vocabulary quiz with exactly 5 questions.
                 1. **Be adaptive**: Calibrate the vocabulary difficulty to the learner’s proficiency. For a '${proficiencyLevel}' learner, focus on ${proficiencyLevel === 'Beginner' ? 'basic recognition and simple meanings.' : 'application in full sentences and contextual meaning.'}
                 2. **Be themed**: Randomly select ONE theme from the following list: Feelings and Emotions, School and Learning, Food and Drink, Family, Daily Routines, Places, Nature, Occupations. All 5 questions must relate to this single theme.
+                
+                **VARIETY MANDATE (CRITICAL):**
+                Each of the 5 questions must test a different vocabulary word within the chosen theme. The correct answer for each question must also be unique.
+
                 3. **Vary Formats**: 
                    - For 'Beginner' level, create "What is the meaning of [Malay Word]?" questions. The correct answer 'a' must be the English meaning. The incorrect options 'o' must be other plausible but incorrect English meanings.
                    - For 'Intermediate' and 'Advanced' levels, create "fill-in-the-blank" questions where the user must choose the correct Malay word to complete a sentence.
@@ -388,7 +398,7 @@ Answer Key: 1-A, 2-A
             const prompt = constructPrompt(moduleKey, currentTier, totalScore);
             
             const apiKey = "AIzaSyC9AKQcORYqndRZGhvTh-OqyMvE-Q7F2aI"; 
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
             const payload = {
                 contents: [{ role: "user", parts: [{ text: prompt }] }],
                 generationConfig: {
@@ -407,9 +417,9 @@ Answer Key: 1-A, 2-A
                     if (generatedData.questions && generatedData.questions.length > 0) {
                         const validQuestions = generatedData.questions.filter(q => q && q.a && Array.isArray(q.o));
                         if (validQuestions.length > 0) {
-                           loadQuiz(validQuestions, moduleKey);
+                            loadQuiz(validQuestions, moduleKey);
                         } else {
-                           throw new Error("API returned no valid questions.");
+                            throw new Error("API returned no valid questions.");
                         }
                     } else { throw new Error("API returned no questions."); }
                 } else { 
@@ -544,7 +554,7 @@ Answer Key: 1-A, 2-A
                     Return a single valid JSON object with two keys: "words" (an array of 5 word objects) and "quiz" (an array of 5 question objects).`;
 
                     const apiKey = "AIzaSyC9AKQcORYqndRZGhvTh-OqyMvE-Q7F2aI";
-                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
                     const payload = {
                         contents: [{ role: "user", parts: [{ text: prompt }] }],
                         generationConfig: { responseMimeType: "application/json" }
