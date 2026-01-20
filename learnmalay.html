@@ -573,10 +573,10 @@ Answer Key: 1-A, 2-A
             // Use API key from configuration
             const apiUrl = `${GEMINI_API_ENDPOINT}?key=${API_KEYS.quizGeneration}`;
             const payload = {
-                contents: [{ role: "user", parts: [{ text: prompt }] }],
+                contents: [{ parts: [{ text: prompt }] }],
                 generationConfig: {
-                    responseMimeType: "application/json",
-                    responseSchema: { type: "OBJECT", properties: { questions: { type: "ARRAY", items: { type: "OBJECT", properties: { q: { type: "STRING" }, a: { type: "STRING" }, o: { type: "ARRAY", items: { type: "STRING" } }, exp: { type: "STRING" } }, required: ["q", "a", "o", "exp"] } } }, required: ["questions"] }
+                    temperature: 0.7,
+                    maxOutputTokens: 2048
                 }
             };
 
@@ -786,8 +786,11 @@ Answer Key: 1-A, 2-A
                     // Use API key from configuration
                     const apiUrl = `${GEMINI_API_ENDPOINT}?key=${API_KEYS.dailyVocabulary}`;
                     const payload = {
-                        contents: [{ role: "user", parts: [{ text: prompt }] }],
-                        generationConfig: { responseMimeType: "application/json" }
+                        contents: [{ parts: [{ text: prompt }] }],
+                        generationConfig: {
+                            temperature: 0.7,
+                            maxOutputTokens: 2048
+                        }
                     };
 
                     console.log('[DailyWords] Making API request to:', GEMINI_API_ENDPOINT);
