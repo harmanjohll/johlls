@@ -245,8 +245,8 @@ Answer Key: 1-A, 2-A
         }
 
         function checkAPIConfiguration() {
-            const apiConfigured = API_KEYS.quizGeneration !== 'AIzaSyD3NqdSfm8g72FdepK6up1dk1LrW17j-zo' &&
-                                 API_KEYS.dailyVocabulary !== 'AIzaSyD3NqdSfm8g72FdepK6up1dk1LrW17j-zo';
+            const apiConfigured = API_KEYS.quizGeneration !== 'AIzaSyDiCrcpM1hc900ItIBfaLdAd_cXoJnYUvY' &&
+                                 API_KEYS.dailyVocabulary !== 'AIzaSyDiCrcpM1hc900ItIBfaLdAd_cXoJnYUvY';
 
             if (!apiConfigured) {
                 console.error('═══════════════════════════════════════════════════════════');
@@ -591,7 +591,7 @@ Answer Key: 1-A, 2-A
 
             try {
                 // Check if API key is configured
-                if (API_KEYS.quizGeneration === 'AIzaSyD3NqdSfm8g72FdepK6up1dk1LrW17j-zo') {
+                if (API_KEYS.quizGeneration === 'AIzaSyDiCrcpM1hc900ItIBfaLdAd_cXoJnYUvY') {
                     throw new Error('API key not configured. Please update API_KEYS.quizGeneration in the code with your Google Gemini API key.');
                 }
 
@@ -779,7 +779,7 @@ Answer Key: 1-A, 2-A
                 contentDiv.innerHTML = `<div class="loader"></div><p class="text-center text-gray-500">Menjana perkataan baharu...</p>`;
                 try {
                     // Check if API key is configured
-                    if (API_KEYS.dailyVocabulary === 'AIzaSyD3NqdSfm8g72FdepK6up1dk1LrW17j-zo') {
+                    if (API_KEYS.dailyVocabulary === 'AIzaSyDiCrcpM1hc900ItIBfaLdAd_cXoJnYUvY') {
                         throw new Error('API key not configured. Please update API_KEYS.dailyVocabulary in the code with your Google Gemini API key.');
                     }
 
@@ -891,6 +891,7 @@ Answer Key: 1-A, 2-A
     </script>
 </body>
 </html>
+
 
 
 
