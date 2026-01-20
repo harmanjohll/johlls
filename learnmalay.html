@@ -570,7 +570,7 @@ Answer Key: 1-A, 2-A
 
             const prompt = constructPrompt(moduleKey, currentTier, totalScore);
             
-            const apiKey = "AIzaSyAPbZ39ftl0x1hc2pSD4qVR2HVJFTE2Sxk"; 
+            const apiKey = "AIzaSyD3NqdSfm8g72FdepK6up1dk1LrW17j-zo"; 
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
             const payload = {
                 contents: [{ role: "user", parts: [{ text: prompt }] }],
@@ -582,7 +582,7 @@ Answer Key: 1-A, 2-A
 
             try {
                 // Check if API key is configured
-                if (API_KEYS.quizGeneration === 'YOUR_API_KEY_HERE') {
+                if (API_KEYS.quizGeneration === 'AIzaSyD3NqdSfm8g72FdepK6up1dk1LrW17j-zo') {
                     throw new Error('API key not configured. Please update API_KEYS.quizGeneration in the code with your Google Gemini API key.');
                 }
 
@@ -783,7 +783,7 @@ Answer Key: 1-A, 2-A
                     Then, create a 'quiz' array of 5 MCQ questions. Each question should test one of the 5 words in a "fill-in-the-blank" format.
                     Return a single valid JSON object with two keys: "words" (an array of 5 word objects) and "quiz" (an array of 5 question objects).`;
 
-                    const apiKey = "AIzaSyAPbZ39ftl0x1hc2pSD4qVR2HVJFTE2Sxk";
+                    const apiKey = "AIzaSyD3NqdSfm8g72FdepK6up1dk1LrW17j-zo";
                     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
                     const payload = {
                         contents: [{ role: "user", parts: [{ text: prompt }] }],
@@ -880,6 +880,7 @@ Answer Key: 1-A, 2-A
     </script>
 </body>
 </html>
+
 
 
 
