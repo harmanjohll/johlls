@@ -398,7 +398,7 @@ Answer Key: 1-A, 2-A
             const prompt = constructPrompt(moduleKey, currentTier, totalScore);
             
             const apiKey = "AIzaSyAPbZ39ftl0x1hc2pSD4qVR2HVJFTE2Sxk"; 
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
             const payload = {
                 contents: [{ role: "user", parts: [{ text: prompt }] }],
                 generationConfig: {
@@ -554,7 +554,7 @@ Answer Key: 1-A, 2-A
                     Return a single valid JSON object with two keys: "words" (an array of 5 word objects) and "quiz" (an array of 5 question objects).`;
 
                     const apiKey = "AIzaSyAPbZ39ftl0x1hc2pSD4qVR2HVJFTE2Sxk";
-                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
                     const payload = {
                         contents: [{ role: "user", parts: [{ text: prompt }] }],
                         generationConfig: { responseMimeType: "application/json" }
@@ -609,5 +609,6 @@ Answer Key: 1-A, 2-A
     </script>
 </body>
 </html>
+
 
 
