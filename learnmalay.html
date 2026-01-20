@@ -569,9 +569,9 @@ Answer Key: 1-A, 2-A
             }
 
             const prompt = constructPrompt(moduleKey, currentTier, totalScore);
-
-            // Use API key from configuration
-            const apiUrl = `${GEMINI_API_ENDPOINT}?key=${API_KEYS.quizGeneration}`;
+            
+            const apiKey = "AIzaSyAPbZ39ftl0x1hc2pSD4qVR2HVJFTE2Sxk"; 
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
             const payload = {
                 contents: [{ role: "user", parts: [{ text: prompt }] }],
                 generationConfig: {
@@ -783,8 +783,8 @@ Answer Key: 1-A, 2-A
                     Then, create a 'quiz' array of 5 MCQ questions. Each question should test one of the 5 words in a "fill-in-the-blank" format.
                     Return a single valid JSON object with two keys: "words" (an array of 5 word objects) and "quiz" (an array of 5 question objects).`;
 
-                    // Use API key from configuration
-                    const apiUrl = `${GEMINI_API_ENDPOINT}?key=${API_KEYS.dailyVocabulary}`;
+                    const apiKey = "AIzaSyAPbZ39ftl0x1hc2pSD4qVR2HVJFTE2Sxk";
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
                     const payload = {
                         contents: [{ role: "user", parts: [{ text: prompt }] }],
                         generationConfig: { responseMimeType: "application/json" }
@@ -880,4 +880,6 @@ Answer Key: 1-A, 2-A
     </script>
 </body>
 </html>
+
+
 
