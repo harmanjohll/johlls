@@ -617,11 +617,23 @@ Answer Key: 1-A, 2-A
 
                 let errorMessage = 'Gagal menjana kuiz.';
                 let technicalDetails = error.message;
+                let helpText = '';
 
                 if (error.message.includes('API key not configured')) {
                     errorMessage = '⚠️ API key not configured! Please update the API keys in the code.';
                 } else if (error.message.includes('403')) {
-                    errorMessage = '🔒 API key invalid or quota exceeded. Please check your Google Gemini API key.';
+                    errorMessage = '🔒 403 Forbidden: API Key Issue Detected';
+                    helpText = `
+                        <div class="mt-3 text-left text-sm">
+                            <p class="font-semibold mb-2">This error means your API key is being rejected. Here's how to fix it:</p>
+                            <ol class="list-decimal list-inside space-y-1 ml-2">
+                                <li><strong>Enable the API:</strong> Go to <a href="https://console.cloud.google.com/apis/library/generativelanguage.googleapis.com" target="_blank" class="underline text-blue-600">Google Cloud Console</a> and enable "Generative Language API"</li>
+                                <li><strong>Remove Restrictions:</strong> Go to <a href="https://console.cloud.google.com/apis/credentials" target="_blank" class="underline text-blue-600">API Credentials</a>, find your key, and set both restrictions to "None" (for testing)</li>
+                                <li><strong>Or create a new key:</strong> Go to <a href="https://aistudio.google.com/apikey" target="_blank" class="underline text-blue-600">Google AI Studio</a> and create a fresh API key</li>
+                            </ol>
+                            <p class="mt-2 font-semibold">Your current API key: <code class="bg-gray-100 px-1">AIzaSyAPbZ...TE2Sxk</code></p>
+                        </div>
+                    `;
                 } else if (error.message.includes('400')) {
                     errorMessage = '❌ Bad request to API. The model name or request format may be incorrect.';
                 } else if (error.message.includes('404')) {
@@ -632,8 +644,9 @@ Answer Key: 1-A, 2-A
                     <div class="text-center p-6">
                         <h2 class="text-2xl font-baloo text-red-500 mb-4">Gagal Menjana Kuiz</h2>
                         <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
-                            <p class="text-red-600 font-semibold">${errorMessage}</p>
-                            <p class="text-sm text-gray-600 mt-2">Technical details: ${technicalDetails}</p>
+                            <p class="text-red-600 font-semibold text-lg">${errorMessage}</p>
+                            ${helpText}
+                            <p class="text-xs text-gray-600 mt-3">Technical details: ${technicalDetails}</p>
                         </div>
                         <button id="back-btn" class="mt-4 bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg transition">
                             ← Kembali ke Dashboard
@@ -795,11 +808,23 @@ Answer Key: 1-A, 2-A
                 } catch (error) {
                     console.error("Failed to generate daily words:", error);
                     let errorMessage = 'Gagal memuatkan perkataan hari ini.';
+                    let helpText = '';
 
                     if (error.message.includes('API key not configured')) {
                         errorMessage = '⚠️ API key not configured! Please update the API keys in the code. See console for details.';
                     } else if (error.message.includes('403')) {
-                        errorMessage = '🔒 API key invalid or quota exceeded. Please check your Google Gemini API key.';
+                        errorMessage = '🔒 403 Forbidden: API Key Issue Detected';
+                        helpText = `
+                            <div class="mt-3 text-left text-sm">
+                                <p class="font-semibold mb-2">This error means your API key is being rejected. Here's how to fix it:</p>
+                                <ol class="list-decimal list-inside space-y-1 ml-2">
+                                    <li><strong>Enable the API:</strong> Go to <a href="https://console.cloud.google.com/apis/library/generativelanguage.googleapis.com" target="_blank" class="underline text-blue-600">Google Cloud Console</a> and enable "Generative Language API"</li>
+                                    <li><strong>Remove Restrictions:</strong> Go to <a href="https://console.cloud.google.com/apis/credentials" target="_blank" class="underline text-blue-600">API Credentials</a>, find your key, and set both "Application restrictions" and "API restrictions" to "None" (for testing)</li>
+                                    <li><strong>Or create a new key:</strong> Go to <a href="https://aistudio.google.com/apikey" target="_blank" class="underline text-blue-600">Google AI Studio</a> and create a fresh API key</li>
+                                </ol>
+                                <p class="mt-2 font-semibold">Your current API key: <code class="bg-gray-100 px-1">AIzaSyAPbZ...TE2Sxk</code></p>
+                            </div>
+                        `;
                     } else if (error.message.includes('400')) {
                         errorMessage = '❌ Bad request to API. The model name or request format may be incorrect.';
                     } else if (error.message.includes('404')) {
@@ -808,9 +833,10 @@ Answer Key: 1-A, 2-A
 
                     contentDiv.innerHTML = `
                         <div class="text-center p-4 bg-red-50 border border-red-200 rounded-lg">
-                            <p class="text-red-600 font-semibold">${errorMessage}</p>
-                            <p class="text-sm text-gray-600 mt-2">Technical details: ${error.message}</p>
-                            <button onclick="location.reload()" class="mt-3 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                            <p class="text-red-600 font-semibold text-lg">${errorMessage}</p>
+                            ${helpText}
+                            <p class="text-xs text-gray-600 mt-3">Technical details: ${error.message}</p>
+                            <button onclick="location.reload()" class="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
                                 Try Again
                             </button>
                         </div>
