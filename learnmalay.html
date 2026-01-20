@@ -158,19 +158,45 @@
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF2b3dtcGhxbWZsZmFuam9zcHFtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI0NTY3NTksImV4cCI6MjA2ODAzMjc1OX0.-AdJqEXD8N5C4iNQH3W3s6e1swVompOMQh0rTj3gXQk';
         const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // Google Gemini API Configuration
-        // ⚠️ CRITICAL: These keys should NOT be in client-side code in production!
-        // TODO: Move to backend proxy or serverless function. See SECURITY.md for implementation guide.
-        //
-        // API keys configured - Fresh key from Google AI Studio with no restrictions
-        const API_KEYS = {
-            quizGeneration: 'AIzaSyD3NqdSfm8g72FdepK6up1dk1LrW17j-zo',     // Quiz generation API key
-            dailyVocabulary: 'AIzaSyD3NqdSfm8g72FdepK6up1dk1LrW17j-zo'     // Daily words API key
+        // ═══════════════════════════════════════════════════════════════════════════════
+        // API CONFIGURATION - SINGLE SOURCE OF TRUTH
+        // ═══════════════════════════════════════════════════════════════════════════════
+        // ⚠️ SECURITY WARNING: API keys are exposed in client-side code
+        // For production, move to backend proxy. See SECURITY.md for details.
+
+        // Your Google Gemini API Key
+        const API_KEY = 'AIzaSyDiCrcpM1hc900ItIBfaLdAd_cXoJnYUvY';
+
+        // Gemini API Configuration
+        const GEMINI_CONFIG = {
+            model: 'gemini-pro',                                                                    // Stable, reliable model
+            endpoint: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent',
+            apiKey: API_KEY
         };
 
-        // API Endpoint - Using Gemini Pro (stable and reliable)
-        const GEMINI_MODEL = 'gemini-pro';
-        const GEMINI_API_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
+        // Helper function to make API calls (centralized)
+        async function callGeminiAPI(prompt) {
+            const url = `${GEMINI_CONFIG.endpoint}?key=${GEMINI_CONFIG.apiKey}`;
+            const payload = {
+                contents: [{ parts: [{ text: prompt }] }],
+                generationConfig: {
+                    responseMimeType: "application/json"
+                }
+            };
+
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`API Error ${response.status}: ${errorText}`);
+            }
+
+            return await response.json();
+        }
 
         const KB = {
             imbuhan: { content: `
@@ -239,51 +265,16 @@ Answer Key: 1-A, 2-A
         }
 
         function checkAPIConfiguration() {
-            const apiConfigured = API_KEYS.quizGeneration !== 'YOUR_API_KEY_HERE' &&
-                                 API_KEYS.dailyVocabulary !== 'YOUR_API_KEY_HERE';
-
-            if (!apiConfigured) {
-                console.error('═══════════════════════════════════════════════════════════');
-                console.error('⚠️  API KEYS NOT CONFIGURED  ⚠️');
-                console.error('═══════════════════════════════════════════════════════════');
-                console.error('The application will NOT work until you configure your API keys.');
-                console.error('');
-                console.error('Steps to fix:');
-                console.error('1. Get a Google Gemini API key from: https://aistudio.google.com/apikey');
-                console.error('2. Open learnmalay.html in a text editor');
-                console.error('3. Find the API_KEYS configuration (around line 167)');
-                console.error('4. Replace "YOUR_API_KEY_HERE" with your actual API keys');
-                console.error('5. Save the file and refresh this page');
-                console.error('');
-                console.error('Current model:', GEMINI_MODEL);
-                console.error('Current endpoint:', GEMINI_API_ENDPOINT);
-                console.error('═══════════════════════════════════════════════════════════');
-
-                // Show a warning banner in the UI
-                const loginScreen = document.getElementById('login-screen');
-                const warningBanner = document.createElement('div');
-                warningBanner.className = 'mb-6 p-4 bg-yellow-50 border-l-4 border-yellow-400 text-left';
-                warningBanner.innerHTML = `
-                    <h3 class="font-bold text-yellow-800 mb-2">⚠️ API Keys Not Configured</h3>
-                    <p class="text-sm text-yellow-700 mb-2">
-                        The application cannot generate quizzes or daily vocabulary without API keys.
-                    </p>
-                    <p class="text-sm text-yellow-700 mb-2">
-                        <strong>To fix:</strong> Get an API key from
-                        <a href="https://aistudio.google.com/apikey" target="_blank" class="underline font-semibold">
-                            Google AI Studio
-                        </a> and update the code.
-                    </p>
-                    <p class="text-xs text-yellow-600">
-                        See browser console (F12) for detailed instructions.
-                    </p>
-                `;
-                loginScreen.insertBefore(warningBanner, loginScreen.firstChild);
-            } else {
-                console.log('✅ API keys configured');
-                console.log('📡 Using model:', GEMINI_MODEL);
-                console.log('🔗 Endpoint:', GEMINI_API_ENDPOINT);
+            if (API_KEY === 'YOUR_API_KEY_HERE' || API_KEY === '') {
+                console.error('⚠️  API KEY NOT CONFIGURED!');
+                console.error('Get a key from: https://aistudio.google.com/apikey');
+                return false;
             }
+
+            console.log('✅ API configured');
+            console.log('📡 Model:', GEMINI_CONFIG.model);
+            console.log('🔑 Key:', API_KEY.substring(0, 20) + '...');
+            return true;
         }
 
         function showHelpModal() {
@@ -569,31 +560,9 @@ Answer Key: 1-A, 2-A
 
             const prompt = constructPrompt(moduleKey, currentTier, totalScore);
 
-            // Use API key from configuration
-            const apiUrl = `${GEMINI_API_ENDPOINT}?key=${API_KEYS.quizGeneration}`;
-            const payload = {
-                contents: [{ parts: [{ text: prompt }] }],
-                generationConfig: {
-                    responseMimeType: "application/json"
-                }
-            };
-
             try {
-                // Check if API key is configured
-                if (API_KEYS.quizGeneration === 'YOUR_API_KEY_HERE') {
-                    throw new Error('API key not configured. Please update API_KEYS.quizGeneration in the code with your Google Gemini API key.');
-                }
-
-                console.log('[Quiz] Making API request to:', GEMINI_API_ENDPOINT);
-                const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error('[Quiz] API Error Response:', errorText);
-                    throw new Error(`API request failed with status ${response.status}: ${errorText}`);
-                }
-
-                const result = await response.json();
+                console.log('[Quiz] Generating quiz with AI...');
+                const result = await callGeminiAPI(prompt);
                 console.log('[Quiz] API response received successfully');
                 
                 if (result.candidates && result.candidates[0].content && result.candidates[0].content.parts[0].text) {
@@ -629,7 +598,7 @@ Answer Key: 1-A, 2-A
                                 <li><strong>Remove Restrictions:</strong> Go to <a href="https://console.cloud.google.com/apis/credentials" target="_blank" class="underline text-blue-600">API Credentials</a>, find your key, and set both restrictions to "None" (for testing)</li>
                                 <li><strong>Or create a new key:</strong> Go to <a href="https://aistudio.google.com/apikey" target="_blank" class="underline text-blue-600">Google AI Studio</a> and create a fresh API key</li>
                             </ol>
-                            <p class="mt-2 font-semibold">Your current API key: <code class="bg-gray-100 px-1">AIzaSyAPbZ...TE2Sxk</code></p>
+                            <p class="mt-2 font-semibold">Your current API key: <code class="bg-gray-100 px-1">${API_KEY.substring(0, 20)}...${API_KEY.substring(API_KEY.length - 6)}</code></p>
                         </div>
                     `;
                 } else if (error.message.includes('400')) {
@@ -767,11 +736,6 @@ Answer Key: 1-A, 2-A
                 console.log("Generating new daily words for date:", today);
                 contentDiv.innerHTML = `<div class="loader"></div><p class="text-center text-gray-500">Menjana perkataan baharu...</p>`;
                 try {
-                    // Check if API key is configured
-                    if (API_KEYS.dailyVocabulary === 'YOUR_API_KEY_HERE') {
-                        throw new Error('API key not configured. Please update API_KEYS.dailyVocabulary in the code with your Google Gemini API key.');
-                    }
-
                     const prompt = `For the date ${today}, generate 5 interesting Malay words suitable for a primary school student. The words must be from different categories (e.g., a noun, a verb, an adjective). Avoid overly common words. For each word, provide:
                     1. 'word' (the Malay word)
                     2. 'meaning_my' (the meaning in Malay)
@@ -781,25 +745,8 @@ Answer Key: 1-A, 2-A
                     Then, create a 'quiz' array of 5 MCQ questions. Each question should test one of the 5 words in a "fill-in-the-blank" format.
                     Return a single valid JSON object with two keys: "words" (an array of 5 word objects) and "quiz" (an array of 5 question objects).`;
 
-                    // Use API key from configuration
-                    const apiUrl = `${GEMINI_API_ENDPOINT}?key=${API_KEYS.dailyVocabulary}`;
-                    const payload = {
-                        contents: [{ parts: [{ text: prompt }] }],
-                        generationConfig: {
-                            responseMimeType: "application/json"
-                        }
-                    };
-
-                    console.log('[DailyWords] Making API request to:', GEMINI_API_ENDPOINT);
-                    const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-
-                    if (!response.ok) {
-                        const errorText = await response.text();
-                        console.error('[DailyWords] API Error Response:', errorText);
-                        throw new Error(`API request failed with status ${response.status}: ${errorText}`);
-                    }
-
-                    const result = await response.json();
+                    console.log('[DailyWords] Generating daily vocabulary with AI...');
+                    const result = await callGeminiAPI(prompt);
                     console.log('[DailyWords] API response received successfully');
                     const data = JSON.parse(result.candidates[0].content.parts[0].text);
 
@@ -822,7 +769,7 @@ Answer Key: 1-A, 2-A
                                     <li><strong>Remove Restrictions:</strong> Go to <a href="https://console.cloud.google.com/apis/credentials" target="_blank" class="underline text-blue-600">API Credentials</a>, find your key, and set both "Application restrictions" and "API restrictions" to "None" (for testing)</li>
                                     <li><strong>Or create a new key:</strong> Go to <a href="https://aistudio.google.com/apikey" target="_blank" class="underline text-blue-600">Google AI Studio</a> and create a fresh API key</li>
                                 </ol>
-                                <p class="mt-2 font-semibold">Your current API key: <code class="bg-gray-100 px-1">AIzaSyAPbZ...TE2Sxk</code></p>
+                                <p class="mt-2 font-semibold">Your current API key: <code class="bg-gray-100 px-1">${API_KEY.substring(0, 20)}...${API_KEY.substring(API_KEY.length - 6)}</code></p>
                             </div>
                         `;
                     } else if (error.message.includes('400')) {
