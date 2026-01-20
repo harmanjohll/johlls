@@ -174,10 +174,6 @@
             apiKey: API_KEY
         };
 
-        // API Endpoint - Using Gemini Pro (stable and reliable)
-        const GEMINI_MODEL = 'gemini-2.0-flash';
-        const GEMINI_API_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
-
         const KB = {
             imbuhan: { content: `
 # Imbuhan Awalan (Prefixes)
@@ -245,50 +241,10 @@ Answer Key: 1-A, 2-A
         }
 
         function checkAPIConfiguration() {
-            const apiConfigured = API_KEYS.quizGeneration !== 'AIzaSyD3NqdSfm8g72FdepK6up1dk1LrW17j-zo' &&
-                                 API_KEYS.dailyVocabulary !== 'AIzaSyD3NqdSfm8g72FdepK6up1dk1LrW17j-zo';
-
-            if (!apiConfigured) {
-                console.error('═══════════════════════════════════════════════════════════');
-                console.error('⚠️  API KEYS NOT CONFIGURED  ⚠️');
-                console.error('═══════════════════════════════════════════════════════════');
-                console.error('The application will NOT work until you configure your API keys.');
-                console.error('');
-                console.error('Steps to fix:');
-                console.error('1. Get a Google Gemini API key from: https://aistudio.google.com/apikey');
-                console.error('2. Open learnmalay.html in a text editor');
-                console.error('3. Find the API_KEYS configuration (around line 167)');
-                console.error('4. Replace "YOUR_API_KEY_HERE" with your actual API keys');
-                console.error('5. Save the file and refresh this page');
-                console.error('');
-                console.error('Current model:', GEMINI_MODEL);
-                console.error('Current endpoint:', GEMINI_API_ENDPOINT);
-                console.error('═══════════════════════════════════════════════════════════');
-
-                // Show a warning banner in the UI
-                const loginScreen = document.getElementById('login-screen');
-                const warningBanner = document.createElement('div');
-                warningBanner.className = 'mb-6 p-4 bg-yellow-50 border-l-4 border-yellow-400 text-left';
-                warningBanner.innerHTML = `
-                    <h3 class="font-bold text-yellow-800 mb-2">⚠️ API Keys Not Configured</h3>
-                    <p class="text-sm text-yellow-700 mb-2">
-                        The application cannot generate quizzes or daily vocabulary without API keys.
-                    </p>
-                    <p class="text-sm text-yellow-700 mb-2">
-                        <strong>To fix:</strong> Get an API key from
-                        <a href="https://aistudio.google.com/apikey" target="_blank" class="underline font-semibold">
-                            Google AI Studio
-                        </a> and update the code.
-                    </p>
-                    <p class="text-xs text-yellow-600">
-                        See browser console (F12) for detailed instructions.
-                    </p>
-                `;
-                loginScreen.insertBefore(warningBanner, loginScreen.firstChild);
-            } else {
-                console.log('✅ API keys configured');
-                console.log('📡 Using model:', GEMINI_MODEL);
-                console.log('🔗 Endpoint:', GEMINI_API_ENDPOINT);
+            if (API_KEY === 'YOUR_API_KEY_HERE' || API_KEY === '') {
+                console.error('⚠️  API KEY NOT CONFIGURED!');
+                console.error('Get a key from: https://aistudio.google.com/apikey');
+                return false;
             }
 
             console.log('✅ API configured');
@@ -580,31 +536,9 @@ Answer Key: 1-A, 2-A
 
             const prompt = constructPrompt(moduleKey, currentTier, totalScore);
 
-            // Use API key from configuration
-            const apiUrl = `${GEMINI_API_ENDPOINT}?key=${API_KEYS.quizGeneration}`;
-            const payload = {
-                contents: [{ parts: [{ text: prompt }] }],
-                generationConfig: {
-                    responseMimeType: "application/json"
-                }
-            };
-
             try {
-                // Check if API key is configured
-                if (API_KEYS.quizGeneration === 'AIzaSyD3NqdSfm8g72FdepK6up1dk1LrW17j-zo') {
-                    throw new Error('API key not configured. Please update API_KEYS.quizGeneration in the code with your Google Gemini API key.');
-                }
-
-                console.log('[Quiz] Making API request to:', GEMINI_API_ENDPOINT);
-                const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error('[Quiz] API Error Response:', errorText);
-                    throw new Error(`API request failed with status ${response.status}: ${errorText}`);
-                }
-
-                const result = await response.json();
+                console.log('[Quiz] Generating quiz with AI...');
+                const result = await callGeminiAPI(prompt);
                 console.log('[Quiz] API response received successfully');
                 
                 if (result.candidates && result.candidates[0].content && result.candidates[0].content.parts[0].text) {
@@ -778,11 +712,6 @@ Answer Key: 1-A, 2-A
                 console.log("Generating new daily words for date:", today);
                 contentDiv.innerHTML = `<div class="loader"></div><p class="text-center text-gray-500">Menjana perkataan baharu...</p>`;
                 try {
-                    // Check if API key is configured
-                    if (API_KEYS.dailyVocabulary === 'AIzaSyD3NqdSfm8g72FdepK6up1dk1LrW17j-zo') {
-                        throw new Error('API key not configured. Please update API_KEYS.dailyVocabulary in the code with your Google Gemini API key.');
-                    }
-
                     const prompt = `For the date ${today}, generate 5 interesting Malay words suitable for a primary school student. The words must be from different categories (e.g., a noun, a verb, an adjective). Avoid overly common words. For each word, provide:
                     1. 'word' (the Malay word)
                     2. 'meaning_my' (the meaning in Malay)
@@ -792,25 +721,8 @@ Answer Key: 1-A, 2-A
                     Then, create a 'quiz' array of 5 MCQ questions. Each question should test one of the 5 words in a "fill-in-the-blank" format.
                     Return a single valid JSON object with two keys: "words" (an array of 5 word objects) and "quiz" (an array of 5 question objects).`;
 
-                    // Use API key from configuration
-                    const apiUrl = `${GEMINI_API_ENDPOINT}?key=${API_KEYS.dailyVocabulary}`;
-                    const payload = {
-                        contents: [{ parts: [{ text: prompt }] }],
-                        generationConfig: {
-                            responseMimeType: "application/json"
-                        }
-                    };
-
-                    console.log('[DailyWords] Making API request to:', GEMINI_API_ENDPOINT);
-                    const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-
-                    if (!response.ok) {
-                        const errorText = await response.text();
-                        console.error('[DailyWords] API Error Response:', errorText);
-                        throw new Error(`API request failed with status ${response.status}: ${errorText}`);
-                    }
-
-                    const result = await response.json();
+                    console.log('[DailyWords] Generating daily vocabulary with AI...');
+                    const result = await callGeminiAPI(prompt);
                     console.log('[DailyWords] API response received successfully');
                     const data = JSON.parse(result.candidates[0].content.parts[0].text);
 
