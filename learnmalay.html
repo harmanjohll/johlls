@@ -161,13 +161,18 @@
         // Google Gemini API Configuration
         // ⚠️ CRITICAL: These keys should NOT be in client-side code in production!
         // TODO: Move to backend proxy or serverless function. See SECURITY.md for implementation guide.
+        //
+        // IMPORTANT: Replace these with YOUR OWN API keys from Google AI Studio
+        // Get keys at: https://aistudio.google.com/apikey
         const API_KEYS = {
-            quizGeneration: 'AIzaSyAn7vIqbxswzrW35CZC12SvEX3omjwwl2Q',  // Used for quiz questions
-            dailyVocabulary: 'AIzaSyC9AKQcORYqndRZGhvTh-OqyMvE-Q7F2aI'   // Used for daily words
+            quizGeneration: 'YOUR_API_KEY_HERE',     // Replace with your quiz generation API key
+            dailyVocabulary: 'YOUR_API_KEY_HERE'     // Replace with your daily words API key (can be same as above)
         };
 
-        // API Endpoint
-        const GEMINI_API_ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent';
+        // API Endpoint - Using Gemini 1.5 Flash (fast and efficient)
+        // Other options: gemini-1.5-pro (more capable), gemini-2.0-flash-exp (experimental)
+        const GEMINI_MODEL = 'gemini-1.5-flash';
+        const GEMINI_API_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 
         const KB = {
             imbuhan: { content: `
@@ -215,6 +220,9 @@ Answer Key: 1-A, 2-A
 
         // ─── (2) Initialization ─────────────────────────────────────────────────────────
         async function main() {
+            // Check API configuration on startup
+            checkAPIConfiguration();
+
             document.getElementById('register-btn').addEventListener('click', handleRegister);
             document.getElementById('login-btn').addEventListener('click', handleLogin);
             document.getElementById('logout-btn').addEventListener('click', logout);
@@ -230,6 +238,54 @@ Answer Key: 1-A, 2-A
             });
 
             await checkForSavedSession();
+        }
+
+        function checkAPIConfiguration() {
+            const apiConfigured = API_KEYS.quizGeneration !== 'YOUR_API_KEY_HERE' &&
+                                 API_KEYS.dailyVocabulary !== 'YOUR_API_KEY_HERE';
+
+            if (!apiConfigured) {
+                console.error('═══════════════════════════════════════════════════════════');
+                console.error('⚠️  API KEYS NOT CONFIGURED  ⚠️');
+                console.error('═══════════════════════════════════════════════════════════');
+                console.error('The application will NOT work until you configure your API keys.');
+                console.error('');
+                console.error('Steps to fix:');
+                console.error('1. Get a Google Gemini API key from: https://aistudio.google.com/apikey');
+                console.error('2. Open learnmalay.html in a text editor');
+                console.error('3. Find the API_KEYS configuration (around line 167)');
+                console.error('4. Replace "YOUR_API_KEY_HERE" with your actual API keys');
+                console.error('5. Save the file and refresh this page');
+                console.error('');
+                console.error('Current model:', GEMINI_MODEL);
+                console.error('Current endpoint:', GEMINI_API_ENDPOINT);
+                console.error('═══════════════════════════════════════════════════════════');
+
+                // Show a warning banner in the UI
+                const loginScreen = document.getElementById('login-screen');
+                const warningBanner = document.createElement('div');
+                warningBanner.className = 'mb-6 p-4 bg-yellow-50 border-l-4 border-yellow-400 text-left';
+                warningBanner.innerHTML = `
+                    <h3 class="font-bold text-yellow-800 mb-2">⚠️ API Keys Not Configured</h3>
+                    <p class="text-sm text-yellow-700 mb-2">
+                        The application cannot generate quizzes or daily vocabulary without API keys.
+                    </p>
+                    <p class="text-sm text-yellow-700 mb-2">
+                        <strong>To fix:</strong> Get an API key from
+                        <a href="https://aistudio.google.com/apikey" target="_blank" class="underline font-semibold">
+                            Google AI Studio
+                        </a> and update the code.
+                    </p>
+                    <p class="text-xs text-yellow-600">
+                        See browser console (F12) for detailed instructions.
+                    </p>
+                `;
+                loginScreen.insertBefore(warningBanner, loginScreen.firstChild);
+            } else {
+                console.log('✅ API keys configured');
+                console.log('📡 Using model:', GEMINI_MODEL);
+                console.log('🔗 Endpoint:', GEMINI_API_ENDPOINT);
+            }
         }
 
         function showHelpModal() {
@@ -526,9 +582,22 @@ Answer Key: 1-A, 2-A
             };
 
             try {
+                // Check if API key is configured
+                if (API_KEYS.quizGeneration === 'YOUR_API_KEY_HERE') {
+                    throw new Error('API key not configured. Please update API_KEYS.quizGeneration in the code with your Google Gemini API key.');
+                }
+
+                console.log('[Quiz] Making API request to:', GEMINI_API_ENDPOINT);
                 const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-                if (!response.ok) throw new Error(`API request failed with status ${response.status}`);
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('[Quiz] API Error Response:', errorText);
+                    throw new Error(`API request failed with status ${response.status}: ${errorText}`);
+                }
+
                 const result = await response.json();
+                console.log('[Quiz] API response received successfully');
                 
                 if (result.candidates && result.candidates[0].content && result.candidates[0].content.parts[0].text) {
                     const generatedData = JSON.parse(result.candidates[0].content.parts[0].text);
@@ -545,7 +614,33 @@ Answer Key: 1-A, 2-A
                     throw new Error("Invalid response structure from API."); 
                 }
             } catch (error) {
-                quizScreen.innerHTML = `<div class="text-center"><h2 class="text-2xl font-baloo text-red-500">Gagal Menjana Kuiz</h2><p>${error.message}</p><button id="back-btn" class="mt-4 bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-full">Kembali</button></div>`;
+                console.error('[Quiz] Error generating quiz:', error);
+
+                let errorMessage = 'Gagal menjana kuiz.';
+                let technicalDetails = error.message;
+
+                if (error.message.includes('API key not configured')) {
+                    errorMessage = '⚠️ API key not configured! Please update the API keys in the code.';
+                } else if (error.message.includes('403')) {
+                    errorMessage = '🔒 API key invalid or quota exceeded. Please check your Google Gemini API key.';
+                } else if (error.message.includes('400')) {
+                    errorMessage = '❌ Bad request to API. The model name or request format may be incorrect.';
+                } else if (error.message.includes('404')) {
+                    errorMessage = '🔍 API endpoint not found. The model name may be incorrect.';
+                }
+
+                quizScreen.innerHTML = `
+                    <div class="text-center p-6">
+                        <h2 class="text-2xl font-baloo text-red-500 mb-4">Gagal Menjana Kuiz</h2>
+                        <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+                            <p class="text-red-600 font-semibold">${errorMessage}</p>
+                            <p class="text-sm text-gray-600 mt-2">Technical details: ${technicalDetails}</p>
+                        </div>
+                        <button id="back-btn" class="mt-4 bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg transition">
+                            ← Kembali ke Dashboard
+                        </button>
+                    </div>
+                `;
                 document.getElementById('back-btn').onclick = showDashboard;
             }
         }
@@ -662,6 +757,11 @@ Answer Key: 1-A, 2-A
                 console.log("Generating new daily words for date:", today);
                 contentDiv.innerHTML = `<div class="loader"></div><p class="text-center text-gray-500">Menjana perkataan baharu...</p>`;
                 try {
+                    // Check if API key is configured
+                    if (API_KEYS.dailyVocabulary === 'YOUR_API_KEY_HERE') {
+                        throw new Error('API key not configured. Please update API_KEYS.dailyVocabulary in the code with your Google Gemini API key.');
+                    }
+
                     const prompt = `For the date ${today}, generate 5 interesting Malay words suitable for a primary school student. The words must be from different categories (e.g., a noun, a verb, an adjective). Avoid overly common words. For each word, provide:
                     1. 'word' (the Malay word)
                     2. 'meaning_my' (the meaning in Malay)
@@ -678,16 +778,44 @@ Answer Key: 1-A, 2-A
                         generationConfig: { responseMimeType: "application/json" }
                     };
 
+                    console.log('[DailyWords] Making API request to:', GEMINI_API_ENDPOINT);
                     const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-                    if (!response.ok) throw new Error('API request failed');
+
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        console.error('[DailyWords] API Error Response:', errorText);
+                        throw new Error(`API request failed with status ${response.status}: ${errorText}`);
+                    }
+
                     const result = await response.json();
+                    console.log('[DailyWords] API response received successfully');
                     const data = JSON.parse(result.candidates[0].content.parts[0].text);
 
                     localStorage.setItem('dailyWords', JSON.stringify({ date: today, data: data }));
                     renderDailyWords(data);
                 } catch (error) {
                     console.error("Failed to generate daily words:", error);
-                    contentDiv.innerHTML = `<p class="text-center text-red-500">Gagal memuatkan perkataan hari ini. Sila cuba lagi nanti.</p>`;
+                    let errorMessage = 'Gagal memuatkan perkataan hari ini.';
+
+                    if (error.message.includes('API key not configured')) {
+                        errorMessage = '⚠️ API key not configured! Please update the API keys in the code. See console for details.';
+                    } else if (error.message.includes('403')) {
+                        errorMessage = '🔒 API key invalid or quota exceeded. Please check your Google Gemini API key.';
+                    } else if (error.message.includes('400')) {
+                        errorMessage = '❌ Bad request to API. The model name or request format may be incorrect.';
+                    } else if (error.message.includes('404')) {
+                        errorMessage = '🔍 API endpoint not found. The model name may be incorrect.';
+                    }
+
+                    contentDiv.innerHTML = `
+                        <div class="text-center p-4 bg-red-50 border border-red-200 rounded-lg">
+                            <p class="text-red-600 font-semibold">${errorMessage}</p>
+                            <p class="text-sm text-gray-600 mt-2">Technical details: ${error.message}</p>
+                            <button onclick="location.reload()" class="mt-3 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                                Try Again
+                            </button>
+                        </div>
+                    `;
                 }
             }
         }
