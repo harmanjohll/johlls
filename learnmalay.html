@@ -158,14 +158,20 @@
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF2b3dtcGhxbWZsZmFuam9zcHFtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI0NTY3NTksImV4cCI6MjA2ODAzMjc1OX0.-AdJqEXD8N5C4iNQH3W3s6e1swVompOMQh0rTj3gXQk';
         const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // Google Gemini API Configuration
-        // ⚠️ CRITICAL: These keys should NOT be in client-side code in production!
-        // TODO: Move to backend proxy or serverless function. See SECURITY.md for implementation guide.
-        //
-        // API keys configured - Fresh key from Google AI Studio with no restrictions
-        const API_KEYS = {
-            quizGeneration: 'AIzaSyD3NqdSfm8g72FdepK6up1dk1LrW17j-zo',     // Quiz generation API key
-            dailyVocabulary: 'AIzaSyD3NqdSfm8g72FdepK6up1dk1LrW17j-zo'     // Daily words API key
+        // ═══════════════════════════════════════════════════════════════════════════════
+        // API CONFIGURATION - SINGLE SOURCE OF TRUTH
+        // ═══════════════════════════════════════════════════════════════════════════════
+        // ⚠️ SECURITY WARNING: API keys are exposed in client-side code
+        // For production, move to backend proxy. See SECURITY.md for details.
+
+        // Your Google Gemini API Key
+        const API_KEY = 'AIzaSyDiCrcpM1hc900ItIBfaLdAd_cXoJnYUvY';
+
+        // Gemini API Configuration
+        const GEMINI_CONFIG = {
+            model: 'gemini-pro',                                                                    // Stable, reliable model
+            endpoint: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent',
+            apiKey: API_KEY
         };
 
         // API Endpoint - Using Gemini Pro (stable and reliable)
@@ -284,6 +290,11 @@ Answer Key: 1-A, 2-A
                 console.log('📡 Using model:', GEMINI_MODEL);
                 console.log('🔗 Endpoint:', GEMINI_API_ENDPOINT);
             }
+
+            console.log('✅ API configured');
+            console.log('📡 Model:', GEMINI_CONFIG.model);
+            console.log('🔑 Key:', API_KEY.substring(0, 20) + '...');
+            return true;
         }
 
         function showHelpModal() {
@@ -629,7 +640,7 @@ Answer Key: 1-A, 2-A
                                 <li><strong>Remove Restrictions:</strong> Go to <a href="https://console.cloud.google.com/apis/credentials" target="_blank" class="underline text-blue-600">API Credentials</a>, find your key, and set both restrictions to "None" (for testing)</li>
                                 <li><strong>Or create a new key:</strong> Go to <a href="https://aistudio.google.com/apikey" target="_blank" class="underline text-blue-600">Google AI Studio</a> and create a fresh API key</li>
                             </ol>
-                            <p class="mt-2 font-semibold">Your current API key: <code class="bg-gray-100 px-1">AIzaSyAPbZ...TE2Sxk</code></p>
+                            <p class="mt-2 font-semibold">Your current API key: <code class="bg-gray-100 px-1">${API_KEY.substring(0, 20)}...${API_KEY.substring(API_KEY.length - 6)}</code></p>
                         </div>
                     `;
                 } else if (error.message.includes('400')) {
@@ -822,7 +833,7 @@ Answer Key: 1-A, 2-A
                                     <li><strong>Remove Restrictions:</strong> Go to <a href="https://console.cloud.google.com/apis/credentials" target="_blank" class="underline text-blue-600">API Credentials</a>, find your key, and set both "Application restrictions" and "API restrictions" to "None" (for testing)</li>
                                     <li><strong>Or create a new key:</strong> Go to <a href="https://aistudio.google.com/apikey" target="_blank" class="underline text-blue-600">Google AI Studio</a> and create a fresh API key</li>
                                 </ol>
-                                <p class="mt-2 font-semibold">Your current API key: <code class="bg-gray-100 px-1">AIzaSyAPbZ...TE2Sxk</code></p>
+                                <p class="mt-2 font-semibold">Your current API key: <code class="bg-gray-100 px-1">${API_KEY.substring(0, 20)}...${API_KEY.substring(API_KEY.length - 6)}</code></p>
                             </div>
                         `;
                     } else if (error.message.includes('400')) {
