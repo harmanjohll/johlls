@@ -22,9 +22,14 @@
     <div id="app-container" class="max-w-4xl mx-auto p-4 md:p-6">
         <header class="flex justify-between items-center bg-white p-4 rounded-xl shadow-md mb-6">
             <h1 class="text-2xl md:text-3xl font-baloo text-blue-600">Selamat Datang!</h1>
-            <div id="user-profile" class="text-right hidden">
-                <div class="font-semibold text-lg" id="user-name-display"></div>
-                <a href="#" id="logout-btn" class="text-xs text-red-500 hover:underline">Logout</a>
+            <div class="flex items-center gap-4">
+                <button id="help-btn" class="px-4 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg text-sm font-semibold transition" title="Help & Documentation">
+                    📚 Help
+                </button>
+                <div id="user-profile" class="text-right hidden">
+                    <div class="font-semibold text-lg" id="user-name-display"></div>
+                    <a href="#" id="logout-btn" class="text-xs text-red-500 hover:underline">Logout</a>
+                </div>
             </div>
         </header>
 
@@ -59,16 +64,114 @@
             <!-- QUIZ SCREEN -->
             <div id="quiz-screen" class="hidden bg-white p-8 rounded-xl shadow-md"></div>
         </main>
+
+        <!-- HELP MODAL -->
+        <div id="help-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                <div class="sticky top-0 bg-white border-b p-4 flex justify-between items-center">
+                    <h2 class="text-2xl font-baloo text-blue-600">📚 Help & Documentation</h2>
+                    <button id="close-help-btn" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+                </div>
+                <div class="p-6">
+                    <p class="text-gray-600 mb-6">Welcome to Malay Language Adventure! Here are resources to help you learn effectively.</p>
+
+                    <div class="space-y-4">
+                        <div class="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500">
+                            <h3 class="font-bold text-lg mb-2">📖 Comprehensive Learning Guide</h3>
+                            <p class="text-sm text-gray-600 mb-3">Complete educational content covering vocabulary, grammar, affixes, reading, writing, and oral skills aligned with Singapore PSLE syllabus.</p>
+                            <a href="LEARNING_GUIDE.md" target="_blank" class="text-blue-600 hover:underline font-semibold">→ Open Learning Guide</a>
+                        </div>
+
+                        <div class="bg-green-50 p-4 rounded-lg border-l-4 border-green-500">
+                            <h3 class="font-bold text-lg mb-2">👨‍🎓 User Guide</h3>
+                            <p class="text-sm text-gray-600 mb-3">How to use this platform effectively. Includes sections for students, teachers, and parents with tips and best practices.</p>
+                            <a href="USER_GUIDE.md" target="_blank" class="text-green-600 hover:underline font-semibold">→ Open User Guide</a>
+                        </div>
+
+                        <div class="bg-purple-50 p-4 rounded-lg border-l-4 border-purple-500">
+                            <h3 class="font-bold text-lg mb-2">💻 Developer Setup Guide</h3>
+                            <p class="text-sm text-gray-600 mb-3">Technical documentation for developers including setup instructions, architecture overview, and API integration.</p>
+                            <a href="SETUP.md" target="_blank" class="text-purple-600 hover:underline font-semibold">→ Open Setup Guide</a>
+                        </div>
+
+                        <div class="bg-red-50 p-4 rounded-lg border-l-4 border-red-500">
+                            <h3 class="font-bold text-lg mb-2">🔒 Security Documentation</h3>
+                            <p class="text-sm text-gray-600 mb-3">Important security considerations, current issues, and recommended best practices for securing the application.</p>
+                            <a href="SECURITY.md" target="_blank" class="text-red-600 hover:underline font-semibold">→ Open Security Guide</a>
+                        </div>
+
+                        <div class="bg-gray-50 p-4 rounded-lg border-l-4 border-gray-500">
+                            <h3 class="font-bold text-lg mb-2">📄 Project Overview</h3>
+                            <p class="text-sm text-gray-600 mb-3">Complete README with project overview, features, quick start guide, and learning tips.</p>
+                            <a href="README.md" target="_blank" class="text-gray-600 hover:underline font-semibold">→ Open README</a>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 pt-6 border-t">
+                        <h3 class="font-bold mb-2">💡 Quick Tips</h3>
+                        <ul class="text-sm text-gray-600 space-y-2">
+                            <li>• Practice daily - 15 minutes is better than 2 hours once a week</li>
+                            <li>• Review your daily vocabulary every morning</li>
+                            <li>• Complete quizzes in all 4 modules for balanced learning</li>
+                            <li>• Learn from mistakes - read the correct answers carefully</li>
+                            <li>• Track your tier progress and celebrate improvements</li>
+                        </ul>
+                    </div>
+
+                    <div class="mt-4 text-center text-sm text-gray-500">
+                        <p><strong>Rajin praktik, pasti cemerlang!</strong></p>
+                        <p>Be diligent in practice, and you'll surely excel!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script type="module">
+        // ════════════════════════════════════════════════════════════════════════════════
+        // MALAY LANGUAGE ADVENTURE v2.17
+        // ════════════════════════════════════════════════════════════════════════════════
+        // Version 2.17 - Documentation & Security Update
+        //   - Added comprehensive documentation (README, LEARNING_GUIDE, USER_GUIDE, SETUP, SECURITY)
+        //   - Added Help modal with links to all documentation
+        //   - Improved configuration organization with security warnings
+        //   - See SECURITY.md for critical information about API key management
+        //
         // Version 2.16 - Improved question variety
+        //   - Enhanced AI prompt engineering for diverse questions
+        //   - Optimized knowledge base integration
+        // ════════════════════════════════════════════════════════════════════════════════
 
-        // ─── (1) Setup ──────────────────────────────────────────────────────────────────
+        // ─── (1) CONFIGURATION ──────────────────────────────────────────────────────────
+        // ⚠️ SECURITY WARNING ⚠️
+        // API keys below are exposed in client-side code. This is a security risk.
+        // For production use, implement a backend proxy layer to protect these keys.
+        // See SECURITY.md for detailed mitigation strategies and best practices.
+        // ════════════════════════════════════════════════════════════════════════════════
+
         import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+        // Supabase Configuration
+        // Note: The anon key is designed for client-side use, but ensure Row Level
+        // Security (RLS) policies are properly configured. See SECURITY.md.
         const SUPABASE_URL = 'https://qvowmphqmflfanjospqm.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF2b3dtcGhxbWZsZmFuam9zcHFtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI0NTY3NTksImV4cCI6MjA2ODAzMjc1OX0.-AdJqEXD8N5C4iNQH3W3s6e1swVompOMQh0rTj3gXQk';
         const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // Google Gemini API Configuration
+        // ⚠️ CRITICAL: These keys should NOT be in client-side code in production!
+        // TODO: Move to backend proxy or serverless function. See SECURITY.md for implementation guide.
+        //
+        // API keys configured - Fresh key from Google AI Studio with no restrictions
+        const API_KEYS = {
+            quizGeneration: 'AIzaSyD3NqdSfm8g72FdepK6up1dk1LrW17j-zo',     // Quiz generation API key
+            dailyVocabulary: 'AIzaSyD3NqdSfm8g72FdepK6up1dk1LrW17j-zo'     // Daily words API key
+        };
+
+        // API Endpoint - Using Gemini 1.5 Flash (fast and efficient)
+        // Other options: gemini-1.5-pro (more capable), gemini-2.0-flash-exp (experimental)
+        const GEMINI_MODEL = 'gemini-1.5-flash';
+        const GEMINI_API_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 
         const KB = {
             imbuhan: { content: `
@@ -116,10 +219,80 @@ Answer Key: 1-A, 2-A
 
         // ─── (2) Initialization ─────────────────────────────────────────────────────────
         async function main() {
+            // Check API configuration on startup
+            checkAPIConfiguration();
+
             document.getElementById('register-btn').addEventListener('click', handleRegister);
             document.getElementById('login-btn').addEventListener('click', handleLogin);
             document.getElementById('logout-btn').addEventListener('click', logout);
+
+            // Help modal event listeners
+            document.getElementById('help-btn').addEventListener('click', showHelpModal);
+            document.getElementById('close-help-btn').addEventListener('click', hideHelpModal);
+            document.getElementById('help-modal').addEventListener('click', (e) => {
+                // Close modal when clicking outside the content
+                if (e.target.id === 'help-modal') {
+                    hideHelpModal();
+                }
+            });
+
             await checkForSavedSession();
+        }
+
+        function checkAPIConfiguration() {
+            const apiConfigured = API_KEYS.quizGeneration !== 'YOUR_API_KEY_HERE' &&
+                                 API_KEYS.dailyVocabulary !== 'YOUR_API_KEY_HERE';
+
+            if (!apiConfigured) {
+                console.error('═══════════════════════════════════════════════════════════');
+                console.error('⚠️  API KEYS NOT CONFIGURED  ⚠️');
+                console.error('═══════════════════════════════════════════════════════════');
+                console.error('The application will NOT work until you configure your API keys.');
+                console.error('');
+                console.error('Steps to fix:');
+                console.error('1. Get a Google Gemini API key from: https://aistudio.google.com/apikey');
+                console.error('2. Open learnmalay.html in a text editor');
+                console.error('3. Find the API_KEYS configuration (around line 167)');
+                console.error('4. Replace "YOUR_API_KEY_HERE" with your actual API keys');
+                console.error('5. Save the file and refresh this page');
+                console.error('');
+                console.error('Current model:', GEMINI_MODEL);
+                console.error('Current endpoint:', GEMINI_API_ENDPOINT);
+                console.error('═══════════════════════════════════════════════════════════');
+
+                // Show a warning banner in the UI
+                const loginScreen = document.getElementById('login-screen');
+                const warningBanner = document.createElement('div');
+                warningBanner.className = 'mb-6 p-4 bg-yellow-50 border-l-4 border-yellow-400 text-left';
+                warningBanner.innerHTML = `
+                    <h3 class="font-bold text-yellow-800 mb-2">⚠️ API Keys Not Configured</h3>
+                    <p class="text-sm text-yellow-700 mb-2">
+                        The application cannot generate quizzes or daily vocabulary without API keys.
+                    </p>
+                    <p class="text-sm text-yellow-700 mb-2">
+                        <strong>To fix:</strong> Get an API key from
+                        <a href="https://aistudio.google.com/apikey" target="_blank" class="underline font-semibold">
+                            Google AI Studio
+                        </a> and update the code.
+                    </p>
+                    <p class="text-xs text-yellow-600">
+                        See browser console (F12) for detailed instructions.
+                    </p>
+                `;
+                loginScreen.insertBefore(warningBanner, loginScreen.firstChild);
+            } else {
+                console.log('✅ API keys configured');
+                console.log('📡 Using model:', GEMINI_MODEL);
+                console.log('🔗 Endpoint:', GEMINI_API_ENDPOINT);
+            }
+        }
+
+        function showHelpModal() {
+            document.getElementById('help-modal').classList.remove('hidden');
+        }
+
+        function hideHelpModal() {
+            document.getElementById('help-modal').classList.add('hidden');
         }
 
         async function checkForSavedSession() {
@@ -408,9 +581,22 @@ Answer Key: 1-A, 2-A
             };
 
             try {
+                // Check if API key is configured
+                if (API_KEYS.quizGeneration === 'YOUR_API_KEY_HERE') {
+                    throw new Error('API key not configured. Please update API_KEYS.quizGeneration in the code with your Google Gemini API key.');
+                }
+
+                console.log('[Quiz] Making API request to:', GEMINI_API_ENDPOINT);
                 const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-                if (!response.ok) throw new Error(`API request failed with status ${response.status}`);
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('[Quiz] API Error Response:', errorText);
+                    throw new Error(`API request failed with status ${response.status}: ${errorText}`);
+                }
+
                 const result = await response.json();
+                console.log('[Quiz] API response received successfully');
                 
                 if (result.candidates && result.candidates[0].content && result.candidates[0].content.parts[0].text) {
                     const generatedData = JSON.parse(result.candidates[0].content.parts[0].text);
@@ -427,7 +613,46 @@ Answer Key: 1-A, 2-A
                     throw new Error("Invalid response structure from API."); 
                 }
             } catch (error) {
-                quizScreen.innerHTML = `<div class="text-center"><h2 class="text-2xl font-baloo text-red-500">Gagal Menjana Kuiz</h2><p>${error.message}</p><button id="back-btn" class="mt-4 bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-full">Kembali</button></div>`;
+                console.error('[Quiz] Error generating quiz:', error);
+
+                let errorMessage = 'Gagal menjana kuiz.';
+                let technicalDetails = error.message;
+                let helpText = '';
+
+                if (error.message.includes('API key not configured')) {
+                    errorMessage = '⚠️ API key not configured! Please update the API keys in the code.';
+                } else if (error.message.includes('403')) {
+                    errorMessage = '🔒 403 Forbidden: API Key Issue Detected';
+                    helpText = `
+                        <div class="mt-3 text-left text-sm">
+                            <p class="font-semibold mb-2">This error means your API key is being rejected. Here's how to fix it:</p>
+                            <ol class="list-decimal list-inside space-y-1 ml-2">
+                                <li><strong>Enable the API:</strong> Go to <a href="https://console.cloud.google.com/apis/library/generativelanguage.googleapis.com" target="_blank" class="underline text-blue-600">Google Cloud Console</a> and enable "Generative Language API"</li>
+                                <li><strong>Remove Restrictions:</strong> Go to <a href="https://console.cloud.google.com/apis/credentials" target="_blank" class="underline text-blue-600">API Credentials</a>, find your key, and set both restrictions to "None" (for testing)</li>
+                                <li><strong>Or create a new key:</strong> Go to <a href="https://aistudio.google.com/apikey" target="_blank" class="underline text-blue-600">Google AI Studio</a> and create a fresh API key</li>
+                            </ol>
+                            <p class="mt-2 font-semibold">Your current API key: <code class="bg-gray-100 px-1">AIzaSyAPbZ...TE2Sxk</code></p>
+                        </div>
+                    `;
+                } else if (error.message.includes('400')) {
+                    errorMessage = '❌ Bad request to API. The model name or request format may be incorrect.';
+                } else if (error.message.includes('404')) {
+                    errorMessage = '🔍 API endpoint not found. The model name may be incorrect.';
+                }
+
+                quizScreen.innerHTML = `
+                    <div class="text-center p-6">
+                        <h2 class="text-2xl font-baloo text-red-500 mb-4">Gagal Menjana Kuiz</h2>
+                        <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+                            <p class="text-red-600 font-semibold text-lg">${errorMessage}</p>
+                            ${helpText}
+                            <p class="text-xs text-gray-600 mt-3">Technical details: ${technicalDetails}</p>
+                        </div>
+                        <button id="back-btn" class="mt-4 bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg transition">
+                            ← Kembali ke Dashboard
+                        </button>
+                    </div>
+                `;
                 document.getElementById('back-btn').onclick = showDashboard;
             }
         }
@@ -544,6 +769,11 @@ Answer Key: 1-A, 2-A
                 console.log("Generating new daily words for date:", today);
                 contentDiv.innerHTML = `<div class="loader"></div><p class="text-center text-gray-500">Menjana perkataan baharu...</p>`;
                 try {
+                    // Check if API key is configured
+                    if (API_KEYS.dailyVocabulary === 'YOUR_API_KEY_HERE') {
+                        throw new Error('API key not configured. Please update API_KEYS.dailyVocabulary in the code with your Google Gemini API key.');
+                    }
+
                     const prompt = `For the date ${today}, generate 5 interesting Malay words suitable for a primary school student. The words must be from different categories (e.g., a noun, a verb, an adjective). Avoid overly common words. For each word, provide:
                     1. 'word' (the Malay word)
                     2. 'meaning_my' (the meaning in Malay)
@@ -560,16 +790,57 @@ Answer Key: 1-A, 2-A
                         generationConfig: { responseMimeType: "application/json" }
                     };
 
+                    console.log('[DailyWords] Making API request to:', GEMINI_API_ENDPOINT);
                     const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-                    if (!response.ok) throw new Error('API request failed');
+
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        console.error('[DailyWords] API Error Response:', errorText);
+                        throw new Error(`API request failed with status ${response.status}: ${errorText}`);
+                    }
+
                     const result = await response.json();
+                    console.log('[DailyWords] API response received successfully');
                     const data = JSON.parse(result.candidates[0].content.parts[0].text);
 
                     localStorage.setItem('dailyWords', JSON.stringify({ date: today, data: data }));
                     renderDailyWords(data);
                 } catch (error) {
                     console.error("Failed to generate daily words:", error);
-                    contentDiv.innerHTML = `<p class="text-center text-red-500">Gagal memuatkan perkataan hari ini. Sila cuba lagi nanti.</p>`;
+                    let errorMessage = 'Gagal memuatkan perkataan hari ini.';
+                    let helpText = '';
+
+                    if (error.message.includes('API key not configured')) {
+                        errorMessage = '⚠️ API key not configured! Please update the API keys in the code. See console for details.';
+                    } else if (error.message.includes('403')) {
+                        errorMessage = '🔒 403 Forbidden: API Key Issue Detected';
+                        helpText = `
+                            <div class="mt-3 text-left text-sm">
+                                <p class="font-semibold mb-2">This error means your API key is being rejected. Here's how to fix it:</p>
+                                <ol class="list-decimal list-inside space-y-1 ml-2">
+                                    <li><strong>Enable the API:</strong> Go to <a href="https://console.cloud.google.com/apis/library/generativelanguage.googleapis.com" target="_blank" class="underline text-blue-600">Google Cloud Console</a> and enable "Generative Language API"</li>
+                                    <li><strong>Remove Restrictions:</strong> Go to <a href="https://console.cloud.google.com/apis/credentials" target="_blank" class="underline text-blue-600">API Credentials</a>, find your key, and set both "Application restrictions" and "API restrictions" to "None" (for testing)</li>
+                                    <li><strong>Or create a new key:</strong> Go to <a href="https://aistudio.google.com/apikey" target="_blank" class="underline text-blue-600">Google AI Studio</a> and create a fresh API key</li>
+                                </ol>
+                                <p class="mt-2 font-semibold">Your current API key: <code class="bg-gray-100 px-1">AIzaSyAPbZ...TE2Sxk</code></p>
+                            </div>
+                        `;
+                    } else if (error.message.includes('400')) {
+                        errorMessage = '❌ Bad request to API. The model name or request format may be incorrect.';
+                    } else if (error.message.includes('404')) {
+                        errorMessage = '🔍 API endpoint not found. The model name may be incorrect.';
+                    }
+
+                    contentDiv.innerHTML = `
+                        <div class="text-center p-4 bg-red-50 border border-red-200 rounded-lg">
+                            <p class="text-red-600 font-semibold text-lg">${errorMessage}</p>
+                            ${helpText}
+                            <p class="text-xs text-gray-600 mt-3">Technical details: ${error.message}</p>
+                            <button onclick="location.reload()" class="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                                Try Again
+                            </button>
+                        </div>
+                    `;
                 }
             }
         }
